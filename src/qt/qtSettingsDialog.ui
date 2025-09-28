@@ -77,6 +77,11 @@
                 <string>Russian</string>
                </property>
               </item>
+              <item>
+               <property name="text">
+                <string>Ukrainian</string>
+               </property>
+              </item>
              </widget>
             </item>
            </layout>
@@ -466,6 +471,7 @@
            </property>
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>

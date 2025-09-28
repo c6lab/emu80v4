@@ -321,6 +321,8 @@ void SettingsDialog::fillControlValues()
         ui->langComboBox->setCurrentIndex(1);
     else if (val == "ru")
         ui->langComboBox->setCurrentIndex(2);
+    else if (val == "ua")
+        ui->langComboBox->setCurrentIndex(3);
     else // if (val == "system")
         ui->langComboBox->setCurrentIndex(0);
 
@@ -809,6 +811,9 @@ void SettingsDialog::on_applyPushButton_clicked()
             break;
         case 2:
             val = "ru";
+            break;
+        case 3:
+            val = "ua";
             break;
         default:
             val = "";
