@@ -27,6 +27,7 @@
 #include "ui_qtZxConfig.h"
 #include "ui_qtSpecConfig.h"
 #include "ui_qtOkeanConfig.h"
+#include "ui_qtPartnerConfig.h"
 
 #include "../Pal.h"
 
@@ -60,6 +61,8 @@ ConfigWidget* ConfigWidget::create(QString platformName)
         widget = new SpecConfigWidget();
     else if (platformName == "okean")
         widget = new OkeanConfigWidget();
+    /*else if (platformName == "partner")
+        widget = new PartnerConfigWidget();*/
     else // if (platformName == "apogey" || platformName == "rk86" || platformName == "kr04" || platformName == "mikrosha" || platformName == "mikro80" || platformName == "ut88")
     widget = new ApogeyConfigWidget();
 
@@ -289,22 +292,35 @@ KorvetConfigWidget::KorvetConfigWidget(QWidget *parent) :
 void KorvetConfigWidget::loadConfig()
 {
     m_defValues["CFG_PPI3"] = "AY";
+    m_defValues["CFG_OPTS"] = "2";
 
     optBegin();
     ui->psgCheckBox->setChecked(optLoad("CFG_PPI3").toString() == "AY");
+    QString val = optLoad("CFG_OPTS").toString();
     optEnd();
+
+    if (val == "1") {
+        ui->opts1RadioButton->setChecked(val == "1");
+        ui->opts1RadioButton->setFocus();
+    } else if (val == "2") {
+        ui->opts2RadioButton->setChecked(true);
+        ui->opts2RadioButton->setFocus();
+    }
 }
 
 void KorvetConfigWidget::saveConfig()
 {
     optBegin();
     optSave("CFG_PPI3", ui->psgCheckBox->isChecked() ? "AY" : "NONE");
+    optSave("CFG_OPTS", ui->opts1RadioButton->isChecked() ? "1" : "2");
     optEnd();
 }
 
 void KorvetConfigWidget::setDefaults()
 {
     ui->psgCheckBox->setChecked(m_defValues["CFG_PPI3"] == "AY");
+    ui->opts1RadioButton->setChecked(m_defValues["CFG_OPTS"] == "1");
+    ui->opts2RadioButton->setChecked(m_defValues["CFG_OPTS"] == "2");
 }
 
 
@@ -461,7 +477,10 @@ void SpecConfigWidget::saveConfig()
 
 void SpecConfigWidget::setDefaults()
 {
-    //
+    ui->noneRadioButton->setChecked(m_defValues["CFG_AY"] == "NONE");
+    ui->ayRadioButton->setChecked(m_defValues["CFG_AY"] == "AY");
+    ui->tsRadioButton->setChecked(m_defValues["CFG_TS"] == "TS");
+    ui->intsCheckBox->setChecked(m_defValues["CFG_INTS"] == "ON");
 }
 
 
@@ -536,4 +555,66 @@ void OkeanConfigWidget::setDefaults()
     ui->rel7mRadioButton->setChecked(m_defValues["CFG_BIOS_VER"] == "7m");
     ui->rel8RadioButton->setChecked(m_defValues["CFG_BIOS_VER"] == "8");
     ui->rel8pRadioButton->setChecked(m_defValues["CFG_BIOS_VER"] == "8p");
+}
+
+
+// ######## Partner config widget ########
+
+PartnerConfigWidget::PartnerConfigWidget(QWidget *parent) :
+    ConfigWidget(parent),
+    ui(new Ui::PartnerConfigWidget)
+{
+    ui->setupUi(this);
+}
+
+
+void PartnerConfigWidget::loadConfig()
+{
+    m_defValues["CFG_ROMSET_VER"] = "3";
+
+    optBegin();
+
+    QString val = optLoad("CFG_ROMSET_VER").toString();
+    if (val == "3") {
+        ui->v3RadioButton->setChecked(true);
+        ui->v3RadioButton->setFocus();
+    } else if (val == "2") {
+        ui->v2RadioButton->setChecked(true);
+        ui->v2RadioButton->setFocus();
+    } else if (val == "1") {
+        ui->v1RadioButton->setChecked(true);
+        ui->v1RadioButton->setFocus();
+    } else if (val == "1.03") {
+        ui->v103RadioButton->setChecked(true);
+        ui->v103RadioButton->setFocus();
+    }
+
+    optEnd();
+}
+
+void PartnerConfigWidget::saveConfig()
+{
+    optBegin();
+
+    QString val;
+    if (ui->v3RadioButton->isChecked())
+        val = "3";
+    else if (ui->v2RadioButton->isChecked())
+        val = "2";
+    else if (ui->v1RadioButton->isChecked())
+        val = "1";
+    else if (ui->v103RadioButton->isChecked())
+        val = "1.03";
+
+    optSave("CFG_ROMSET_VER", val);
+
+    optEnd();
+}
+
+void PartnerConfigWidget::setDefaults()
+{
+    ui->v3RadioButton->setChecked(m_defValues["CFG_ROMSET_VER"] == "3");
+    ui->v2RadioButton->setChecked(m_defValues["CFG_ROMSET_VER"] == "2");
+    ui->v1RadioButton->setChecked(m_defValues["CFG_ROMSET_VER"] == "1");
+    ui->v103RadioButton->setChecked(m_defValues["CFG_ROMSET_VER"] == "1.03");
 }
