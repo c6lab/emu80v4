@@ -1,6 +1,6 @@
 /*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2017-2025
+ *  В© Viktor Pykhonin <pyk@mail.ru>, 2017-2025
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -186,14 +186,14 @@ void SettingsDialog::loadRunningConfigValue(QString option, bool force)
 }
 
 
-// Очищает настройки в m_options
+// РћС‡РёС‰Р°РµС‚ РЅР°СЃС‚СЂРѕР№РєРё РІ m_options
 void SettingsDialog::clearConfig()
 {
     m_options.clear();
 }
 
 
-// Считывает текущие работающие настройки в m_options
+// РЎС‡РёС‚С‹РІР°РµС‚ С‚РµРєСѓС‰РёРµ СЂР°Р±РѕС‚Р°СЋС‰РёРµ РЅР°СЃС‚СЂРѕР№РєРё РІ m_options
 void SettingsDialog::readRunningConfig()
 {
     m_platform = m_mainWindow->getPlatformObjectName();
@@ -262,7 +262,7 @@ void SettingsDialog::readRunningConfig()
 }
 
 
-// Обновляет ini-файл, записывая из m_options значения настроек, которых еще нет в ini-файле
+// РћР±РЅРѕРІР»СЏРµС‚ ini-С„Р°Р№Р», Р·Р°РїРёСЃС‹РІР°СЏ РёР· m_options Р·РЅР°С‡РµРЅРёСЏ РЅР°СЃС‚СЂРѕРµРє, РєРѕС‚РѕСЂС‹С… РµС‰Рµ РЅРµС‚ РІ ini-С„Р°Р№Р»Рµ
 void SettingsDialog::writeInitialSavedConfig()
 {
     m_initialOptions = m_options;
@@ -282,7 +282,7 @@ void SettingsDialog::writeInitialSavedConfig()
 }
 
 
-// Загружает в m_options настройки из ini-файла
+// Р—Р°РіСЂСѓР¶Р°РµС‚ РІ m_options РЅР°СЃС‚СЂРѕР№РєРё РёР· ini-С„Р°Р№Р»Р°
 void SettingsDialog::loadSavedConfig()
 {
     QSettings settings;
@@ -317,7 +317,7 @@ void SettingsDialog::loadSavedConfig()
 }
 
 
-// Устанавливает параметры элементов оправления в соответствии с m_options
+// РЈСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РїР°СЂР°РјРµС‚СЂС‹ СЌР»РµРјРµРЅС‚РѕРІ РѕРїСЂР°РІР»РµРЅРёСЏ РІ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРё СЃ m_options
 void SettingsDialog::fillControlValues()
 {
     QString val;
@@ -377,7 +377,7 @@ void SettingsDialog::fillControlValues()
     // Volume
     val = m_options["emulation.volume"];
     int volume = val.toInt();
-    ui->muteCheckBox->setVisible(false); //временно!
+    ui->muteCheckBox->setVisible(false); //РІСЂРµРјРµРЅРЅРѕ!
     ui->volumeSpinBox->setValue(volume);
     ui->volumeSlider->setValue(volume);
     ui->warnLabel->setVisible(volume > 6);
@@ -1043,7 +1043,7 @@ void SettingsDialog::on_applyPushButton_clicked()
         m_options["tapeSoundSource.muted"] = ui->muteTapeCheckBox->isChecked() ? "yes" : "no";
 
     if (ui->tapeSuppressOpeningCheckBox->isVisible())
-        m_options["tapeInHook.suspendAfterResetForMs"] = ui->tapeSuppressOpeningCheckBox->isChecked() ? "200" : "0"; // !!! добавить поле ms
+        m_options["tapeInHook.suspendAfterResetForMs"] = ui->tapeSuppressOpeningCheckBox->isChecked() ? "200" : "0"; // !!! РґРѕР±Р°РІРёС‚СЊ РїРѕР»Рµ ms
 
     if (ui->tapeMultiblockCheckBox->isVisible())
         m_options["loader.allowMultiblock"] = ui->tapeMultiblockCheckBox->isChecked() ? "yes" : "no";
@@ -1104,7 +1104,7 @@ void SettingsDialog::on_applyPushButton_clicked()
 }
 
 
-// Применяет текущие настройки из m_options
+// РџСЂРёРјРµРЅСЏРµС‚ С‚РµРєСѓС‰РёРµ РЅР°СЃС‚СЂРѕР№РєРё РёР· m_options
 void SettingsDialog::saveRunningConfig()
 {
     foreach (QString option, m_options.keys()) {
@@ -1120,7 +1120,7 @@ void SettingsDialog::saveRunningConfig()
 }
 
 
-// Сохраняет настройки из m_options в ini-файле
+// РЎРѕС…СЂР°РЅСЏРµС‚ РЅР°СЃС‚СЂРѕР№РєРё РёР· m_options РІ ini-С„Р°Р№Р»Рµ
 void SettingsDialog::saveStoredConfig()
 {
     QSettings settings;
