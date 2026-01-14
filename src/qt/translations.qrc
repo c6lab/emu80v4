@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/translations">
         <file>emu80_ru.qm</file>
-        <file>emu80_ua.qm</file>
     </qresource>
 </RCC>
