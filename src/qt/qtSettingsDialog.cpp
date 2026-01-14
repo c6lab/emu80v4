@@ -1,6 +1,6 @@
-ï»¿/*
+/*
  *  Emu80 v. 4.x
- *  Â© Viktor Pykhonin <pyk@mail.ru>, 2017-2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2017-2025
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@
 
 #include <QSettings>
 #include <QMessageBox>
+#include <QDir>
+#include <QTranslator>
 
 #include "qtSettingsDialog.h"
 #include "ui_qtSettingsDialog.h"
@@ -49,7 +51,12 @@ void SettingsDialog::initConfig()
     ui->shaderComboBox->addItem("- None -");
     ui->shaderComboBox->addItems(m_mainWindow->getShaderList());
 
+    ui->langComboBox->setItemData(0, "system");
+    ui->langComboBox->setItemData(1, "en");
+    ui->langComboBox->setItemData(2, "ru");
+
     //fillEnabledPlatformList();
+    loadLanguages();
 
     clearConfig();
     readRunningConfig();
@@ -179,14 +186,14 @@ void SettingsDialog::loadRunningConfigValue(QString option, bool force)
 }
 
 
-// ÐžÑ‡Ð¸Ñ‰Ð°ÐµÑ‚ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ Ð² m_options
+// Î÷èùàåò íàñòðîéêè â m_options
 void SettingsDialog::clearConfig()
 {
     m_options.clear();
 }
 
 
-// Ð¡Ñ‡Ð¸Ñ‚Ñ‹Ð²Ð°ÐµÑ‚ Ñ‚ÐµÐºÑƒÑ‰Ð¸Ðµ Ñ€Ð°Ð±Ð¾Ñ‚Ð°ÑŽÑ‰Ð¸Ðµ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ Ð² m_options
+// Ñ÷èòûâàåò òåêóùèå ðàáîòàþùèå íàñòðîéêè â m_options
 void SettingsDialog::readRunningConfig()
 {
     m_platform = m_mainWindow->getPlatformObjectName();
@@ -255,7 +262,7 @@ void SettingsDialog::readRunningConfig()
 }
 
 
-// ÐžÐ±Ð½Ð¾Ð²Ð»ÑÐµÑ‚ ini-Ñ„Ð°Ð¹Ð», Ð·Ð°Ð¿Ð¸ÑÑ‹Ð²Ð°Ñ Ð¸Ð· m_options Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ñ Ð½Ð°ÑÑ‚Ñ€Ð¾ÐµÐº, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ñ… ÐµÑ‰Ðµ Ð½ÐµÑ‚ Ð² ini-Ñ„Ð°Ð¹Ð»Ðµ
+// Îáíîâëÿåò ini-ôàéë, çàïèñûâàÿ èç m_options çíà÷åíèÿ íàñòðîåê, êîòîðûõ åùå íåò â ini-ôàéëå
 void SettingsDialog::writeInitialSavedConfig()
 {
     m_initialOptions = m_options;
@@ -275,7 +282,7 @@ void SettingsDialog::writeInitialSavedConfig()
 }
 
 
-// Ð—Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÑ‚ Ð² m_options Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ Ð¸Ð· ini-Ñ„Ð°Ð¹Ð»Ð°
+// Çàãðóæàåò â m_options íàñòðîéêè èç ini-ôàéëà
 void SettingsDialog::loadSavedConfig()
 {
     QSettings settings;
@@ -310,21 +317,18 @@ void SettingsDialog::loadSavedConfig()
 }
 
 
-// Ð£ÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÑ‚ Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€Ñ‹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð¾Ð² Ð¾Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¸Ñ Ð² ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÑ‚Ð²Ð¸Ð¸ Ñ m_options
+// Óñòàíàâëèâàåò ïàðàìåòðû ýëåìåíòîâ îïðàâëåíèÿ â ñîîòâåòñòâèè ñ m_options
 void SettingsDialog::fillControlValues()
 {
     QString val;
 
     // Language
     val = m_options["locale"];
-    if (val == "en")
-        ui->langComboBox->setCurrentIndex(1);
-    else if (val == "ru")
-        ui->langComboBox->setCurrentIndex(2);
-    else if (val == "ua")
-        ui->langComboBox->setCurrentIndex(3);
-    else // if (val == "system")
-        ui->langComboBox->setCurrentIndex(0);
+    int langIndex = ui->langComboBox->findData(val);
+    if (langIndex > 0)
+        ui->langComboBox->setCurrentIndex(langIndex);
+    else
+        m_options["locale"] = "system";
 
     // Show help
     ui->showHelpCheckBox->setChecked(m_options["showHelp"] == "yes");
@@ -373,7 +377,7 @@ void SettingsDialog::fillControlValues()
     // Volume
     val = m_options["emulation.volume"];
     int volume = val.toInt();
-    ui->muteCheckBox->setVisible(false); //Ð²Ñ€ÐµÐ¼ÐµÐ½Ð½Ð¾!
+    ui->muteCheckBox->setVisible(false); //âðåìåííî!
     ui->volumeSpinBox->setValue(volume);
     ui->volumeSlider->setValue(volume);
     ui->warnLabel->setVisible(volume > 6);
@@ -802,23 +806,7 @@ void SettingsDialog::on_applyPushButton_clicked()
     QString val;
     bool rebootFlag = false;
 
-    switch (ui->langComboBox->currentIndex()) {
-        case 0:
-            val = "system";
-            break;
-        case 1:
-            val = "en";
-            break;
-        case 2:
-            val = "ru";
-            break;
-        case 3:
-            val = "ua";
-            break;
-        default:
-            val = "";
-            break;
-    }
+    val = ui->langComboBox->currentData().toString();
     if (val != m_options["locale"]) {
         m_options["locale"] = val;
         rebootFlag = true;
@@ -1055,7 +1043,7 @@ void SettingsDialog::on_applyPushButton_clicked()
         m_options["tapeSoundSource.muted"] = ui->muteTapeCheckBox->isChecked() ? "yes" : "no";
 
     if (ui->tapeSuppressOpeningCheckBox->isVisible())
-        m_options["tapeInHook.suspendAfterResetForMs"] = ui->tapeSuppressOpeningCheckBox->isChecked() ? "200" : "0"; // !!! Ð´Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ Ð¿Ð¾Ð»Ðµ ms
+        m_options["tapeInHook.suspendAfterResetForMs"] = ui->tapeSuppressOpeningCheckBox->isChecked() ? "200" : "0"; // !!! äîáàâèòü ïîëå ms
 
     if (ui->tapeMultiblockCheckBox->isVisible())
         m_options["loader.allowMultiblock"] = ui->tapeMultiblockCheckBox->isChecked() ? "yes" : "no";
@@ -1116,7 +1104,7 @@ void SettingsDialog::on_applyPushButton_clicked()
 }
 
 
-// ÐŸÑ€Ð¸Ð¼ÐµÐ½ÑÐµÑ‚ Ñ‚ÐµÐºÑƒÑ‰Ð¸Ðµ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ Ð¸Ð· m_options
+// Ïðèìåíÿåò òåêóùèå íàñòðîéêè èç m_options
 void SettingsDialog::saveRunningConfig()
 {
     foreach (QString option, m_options.keys()) {
@@ -1132,7 +1120,7 @@ void SettingsDialog::saveRunningConfig()
 }
 
 
-// Ð¡Ð¾Ñ…Ñ€Ð°Ð½ÑÐµÑ‚ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ Ð¸Ð· m_options Ð² ini-Ñ„Ð°Ð¹Ð»Ðµ
+// Ñîõðàíÿåò íàñòðîéêè èç m_options â ini-ôàéëå
 void SettingsDialog::saveStoredConfig()
 {
     QSettings settings;
@@ -1295,4 +1283,34 @@ void SettingsDialog::on_shaderComboBox_currentIndexChanged(int index)
 void SettingsDialog::on_selectedPlatformsCheckBox_toggled(bool checked)
 {
     ui->platformsListWidget->setEnabled(checked);
+}
+
+
+void SettingsDialog::loadLanguages()
+{
+    QString translationsDir = qApp->applicationDirPath() + "/translations";
+
+    QDir dir(translationsDir);
+    if (!dir.exists())
+        return;
+
+    dir.setNameFilters(QStringList("emu80_*.qm"));
+
+    foreach (const QFileInfo &fileInfo, dir.entryInfoList()) {
+        QString fileName = fileInfo.baseName();
+
+        QStringList parts = fileName.split('_');
+        if (parts.size() != 2)
+            continue;
+
+        QString langCode = parts.last();
+
+        QLocale locale(langCode);
+        QString langName = locale.nativeLanguageName();
+
+        if (!langName.isEmpty()) {
+            langName[0] = langName[0].toUpper();
+            ui->langComboBox->addItem(langName, langCode);
+        }
+    }
 }
