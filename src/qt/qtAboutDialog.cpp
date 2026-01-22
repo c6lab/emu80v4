@@ -40,7 +40,7 @@ AboutDialog::~AboutDialog()
 
 void AboutDialog::execute()
 {
-    ui->nameLabel->setText("Emu80 v. " VERSION);
+    ui->nameLabel->setText("Emu80 (Halo edition) v. " VERSION);
     QString info = "Qt " QT_VERSION_STR " / " COMPILER " / " + QSysInfo::kernelType() + " / " +
                    QSysInfo::buildCpuArchitecture() + " / " + QGuiApplication::platformName() + " / " + qApp->style()->objectName();
     ui->sysinfoLabel->setText(info);

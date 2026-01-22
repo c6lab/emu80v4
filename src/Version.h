@@ -1,4 +1,4 @@
-ï»¿/*
+/*
  *  Emu80 v. 4.x
  *  Â© Viktor Pykhonin <pyk@mail.ru>, 2018-2025
  *
@@ -29,9 +29,9 @@
 #define VER_STR XSTR(VER_MAJOR) "." XSTR(VER_MINOR) "." XSTR(VER_BUILD)
 #define VER_COMMA_SEP VER_MAJOR,VER_MINOR,VER_BUILD
 
-#define VI_FILE_DESCR "Emu80 emulator"
-#define VI_COPYRIGHT "Copyright Â© Viktor Pykhonin, 2016-2025"
-#define VI_FILE_NAME "Emu80qt.exe"
-#define VI_PRODUCT "Emu80"
+#define VI_FILE_DESCR "Emu80 emulator (Halo edition)"
+#define VI_COPYRIGHT "© Viktor Pykhonin, 2016-2025, © C6 Lab, 2026"
+#define VI_FILE_NAME "Emu80qt_halo.exe"
+#define VI_PRODUCT "Emu80_halo"
 
 #endif // VERSION_H

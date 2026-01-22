@@ -11,7 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 greaterThan(QT_MAJOR_VERSION, 5): QT += openglwidgets
 
 
-TARGET = Emu80qt
+TARGET = Emu80qt_halo
 TEMPLATE = app
 
 #CONFIG += console

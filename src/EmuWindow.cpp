@@ -101,7 +101,7 @@ void EmuWindow::setCaption(string caption)
 {
     m_caption = caption;
     string ver = VERSION;
-    m_params.title = "Emu80 " + ver + ": " + caption;
+    m_params.title = "Emu80 (Halo edition) " + ver + ": " + caption;
     applyParams();
 }
 
