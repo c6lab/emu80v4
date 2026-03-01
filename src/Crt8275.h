@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2023
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -144,7 +144,9 @@ class Crt8275 : public AddressableDevice, public IActive
         bool getRasterPresent() {return m_isRasterStarted;}
         double getFrameRate();
 
-        void setLpenPosition(int x, int y);
+        void setLpenPosition(bool active, int x, int y);
+
+        int getCurRow() {return m_curRow;} // for font switching
 
         static EmuObject* create(const EmuValuesList&) {return new Crt8275();}
 
@@ -175,7 +177,10 @@ class Crt8275 : public AddressableDevice, public IActive
         bool m_cursorUnderline;
         int m_lpenX;                 // light pen X position
         int m_lpenY;                 // light pen Y position
+        bool m_lpenActive = false;   // light pen activity (button is pressed)
         int m_lpenCorrection = 0;    // light pen position correction
+        unsigned m_lpenRasterTime = 0;    // light pen raster position
+        uint64_t m_frameStartTime = 0;    // frame start time for light pen
         //CursorFormat m_cursorFormat; // cursor format
 
         uint8_t m_statusReg;
