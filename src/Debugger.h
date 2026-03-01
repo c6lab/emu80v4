@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2017-2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2017-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -109,12 +109,12 @@ struct BreakpointInfo {
 class IDebugger
 {
 public:
-    IDebugger(Platform* platform) {} // todo: implement
+    IDebugger(Platform* /*platform*/) {} // todo: implement
     virtual ~IDebugger() {}
 
     virtual void initDbgWindow() = 0;
     virtual void setCaption(std::string caption) = 0;
-    virtual void sendCmd(DebugCommand cmd) {}
+    virtual void sendCmd(DebugCommand /*cmd*/) {}
 
     virtual void startDebug() = 0;
     virtual void update() = 0;

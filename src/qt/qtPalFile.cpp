@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2017-2022
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2017-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,8 +23,17 @@
 
 using namespace std;
 
-bool PalFile::open(string fileName, string mode)
+PalFile::~PalFile()
 {
+    close();
+}
+
+
+bool PalFile::open(const string &fileName, const string &mode)
+{
+    if (isOpen())
+        close();
+
     m_file = new QFile(QString::fromUtf8(fileName.c_str()));
     QIODevice::OpenModeFlag qmode;
     if (mode == "w")
@@ -54,7 +63,7 @@ void PalFile::close()
 }
 
 
-bool PalFile::isOpen()
+bool PalFile::isOpen() const
 {
     return m_file && m_file->isOpen();
 }
@@ -102,7 +111,7 @@ void PalFile::write32(uint32_t value)
 }
 
 
-int64_t PalFile::getSize()
+int64_t PalFile::getSize() const
 {
     return m_file->size();
 }
@@ -120,19 +129,19 @@ void PalFile::skip(int len)
 }
 
 
-int64_t PalFile::getPos()
+int64_t PalFile::getPos() const
 {
     return m_file->pos();
 }
 
 
-bool PalFile::eof()
+bool PalFile::eof() const
 {
     return m_file->atEnd();
 }
 
 
-bool PalFile::create(std::string fileName)
+bool PalFile::create(const string &fileName)
 {
     QFile file(QString::fromUtf8(fileName.c_str()));
     if (file.exists())
@@ -145,7 +154,7 @@ bool PalFile::create(std::string fileName)
 }
 
 
-bool PalFile::del(std::string fileName)
+bool PalFile::del(const string &fileName)
 {
     QString qFileName = QString::fromUtf8(fileName.c_str());
     QDir dir;
@@ -155,7 +164,7 @@ bool PalFile::del(std::string fileName)
 }
 
 
-bool PalFile::mkDir(string dirName)
+bool PalFile::mkDir(const string &dirName)
 {
     QDir dir(QString::fromUtf8(dirName.c_str()));
     if (dir.exists())
@@ -165,10 +174,10 @@ bool PalFile::mkDir(string dirName)
 }
 
 
-bool PalFile::moveRename(string src, string dst)
+bool PalFile::moveRename(const string &src, const string &dst)
 {
-    QDir dir;
     QString qSrc = QString::fromUtf8(src.c_str());
     QString qDst = QString::fromUtf8(dst.c_str());
+    QDir dir;
     return dir.rename(qSrc, qDst);
 }
