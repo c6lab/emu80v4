@@ -4,13 +4,13 @@
 	<Project>
 		<Option title="Emu80" />
 		<Option pch_mode="2" />
-		<Option compiler="gcc" />
+		<Option compiler="gcc-mingw32" />
 		<Build>
 			<Target title="Debug">
 				<Option output="../bin/Debug/Emu80" prefix_auto="1" extension_auto="1" />
 				<Option object_output="../obj/WxSdl/Debug" />
 				<Option type="0" />
-				<Option compiler="gcc" />
+				<Option compiler="gcc-mingw32" />
 				<Compiler>
 					<Add option="-std=c++11" />
 					<Add option="-g" />
@@ -29,7 +29,7 @@
 				<Option output="../bin/Release/Emu80" prefix_auto="1" extension_auto="1" />
 				<Option object_output="../obj/WxSdl/Release/" />
 				<Option type="0" />
-				<Option compiler="gcc" />
+				<Option compiler="gcc-mingw32" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-std=c++11" />
@@ -49,7 +49,7 @@
 				<Option output="../bin/Debug/Emu80lite" prefix_auto="1" extension_auto="1" />
 				<Option object_output="../obj/Lite/Debug" />
 				<Option type="0" />
-				<Option compiler="gcc" />
+				<Option compiler="gcc-mingw32" />
 				<Compiler>
 					<Add option="-std=c++11" />
 					<Add option="-DPAL_SDL" />
@@ -61,7 +61,7 @@
 				<Option output="../bin/Release/Emu80lite" prefix_auto="1" extension_auto="1" />
 				<Option object_output="../obj/Lite/Release" />
 				<Option type="0" />
-				<Option compiler="gcc" />
+				<Option compiler="gcc-mingw32" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-std=c++11" />
@@ -92,6 +92,9 @@
 			<Add directory="$(#sdl2.lib)" />
 			<Add directory="$(#wx)/lib" />
 		</Linker>
+		<Unit filename="Emu80SDL.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
 		<Unit filename="AddrSpace.cpp" />
 		<Unit filename="AddrSpace.h" />
 		<Unit filename="Apogey.cpp" />
