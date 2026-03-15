@@ -218,6 +218,8 @@
 		<Unit filename="PrnWriter.h" />
 		<Unit filename="Psg3910.cpp" />
 		<Unit filename="Psg3910.h" />
+        <Unit filename="Rtc14818.cpp" />
+        <Unit filename="Rtc14818.h" />
 		<Unit filename="RamDisk.cpp" />
 		<Unit filename="RamDisk.h" />
 		<Unit filename="RfsTapeHooks.cpp" />
