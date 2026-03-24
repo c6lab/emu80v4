@@ -608,6 +608,9 @@ bool OkeanFileLoader::loadFile(const std::string &fileName, bool run)
             cpu->enableHooks();
             cpu->setPC(minAddr);
         }
+
+        delete[] buf;
+        return loaded;
     }
 
 
