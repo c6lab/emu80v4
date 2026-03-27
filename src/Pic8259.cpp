@@ -45,6 +45,7 @@ void Pic8259::writeByte(int addr, uint8_t value)
             m_curRequestLevel = 8;
             m_imr = 0;
             m_irr = 0;
+            m_isr = 0;
             m_levelMode = value & 8;
             m_addrInterval = value & 4 ? 4 : 8;
             m_highestPrio = 0;
