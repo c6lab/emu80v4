@@ -269,3 +269,64 @@ uint8_t AddrSpaceWriteSplitter::readByte(int addr)
 {
     return m_as1->readByte(addr);
 }
+
+
+void AddrDecoder::addDevRead(int matchMask, int match, int resMask, AddressableDevice *addrDevice, int resShift, int devFirstAddr)
+{
+    DeviceInfo dev {addrDevice, matchMask, match, resMask, resShift, devFirstAddr};
+    m_devRVector.push_back(dev);
+}
+
+void AddrDecoder::addDevWrite(int matchMask, int match, int resMask, AddressableDevice *addrDevice, int resShift, int devFirstAddr)
+{
+    DeviceInfo dev {addrDevice, matchMask, match, resMask, resShift, devFirstAddr};
+    m_devWVector.push_back(dev);
+}
+
+
+void AddrDecoder::addDevice(int matchMask, int match, int resMask, AddressableDevice *addrDevice, int resShift, int devFirstAddr)
+{
+    addDevRead(matchMask, match, resMask, addrDevice, resShift, devFirstAddr);
+    addDevWrite(matchMask, match, resMask, addrDevice, resShift, devFirstAddr);
+}
+
+
+bool AddrDecoder::setProperty(const std::string &propertyName, const EmuValuesList &values)
+{
+    if (AddressableDevice::setProperty(propertyName, values))
+        return true;
+
+    if (propertyName == "device" && values[1].isInt() && values[2].isInt()) {
+        addDevice(values[1].asInt(), values[2].asInt(), values[3].asInt(), static_cast<AddressableDevice*>(g_emulation->findObject(values[0].asString())), values[4].asInt(), values[5].asInt());
+        return true;
+    } else if (propertyName == "readDevice" && values[1].isInt() && values[2].isInt()) {
+        addDevRead(values[1].asInt(), values[2].asInt(), values[3].asInt(), static_cast<AddressableDevice*>(g_emulation->findObject(values[0].asString())), values[4].asInt(), values[5].asInt());
+        return true;
+    } else if (propertyName == "writeDevice" && values[1].isInt() && values[2].isInt()) {
+        addDevWrite(values[1].asInt(), values[2].asInt(), values[3].asInt(), static_cast<AddressableDevice*>(g_emulation->findObject(values[0].asString())), values[4].asInt(), values[5].asInt());
+        return true;
+    }
+
+    return false;
+
+}
+
+uint8_t AddrDecoder::readByte(int addr)
+{
+    for (auto& it: m_devRVector) {
+        if ((addr & it.matchMask) == it.match)
+            return it.device->readByte(((addr & it.resMask) >> it.resShift) + it.devFirstAddr);
+    }
+    return m_nullByte;
+}
+
+
+void AddrDecoder::writeByte(int addr, uint8_t value)
+{
+    for (auto& it: m_devWVector) {
+        if ((addr & it.matchMask) == it.match) {
+            it.device->writeByte(((addr & it.resMask) >> it.resShift) + it.devFirstAddr, value);
+            break;
+        }
+    }
+}

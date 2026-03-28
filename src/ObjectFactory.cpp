@@ -87,6 +87,7 @@ ObjectFactory::ObjectFactory()
     REG_EMU_CLASS(EmuWindow);
     REG_EMU_CLASS(EmuObjectGroup);
     REG_EMU_CLASS(AddrSpace);
+    REG_EMU_CLASS(AddrDecoder);
     REG_EMU_CLASS(AddrSpaceMapper);
     REG_EMU_CLASS(AddrSpaceShifter);
     REG_EMU_CLASS(AddrSpaceInverter);
