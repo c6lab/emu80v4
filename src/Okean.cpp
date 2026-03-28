@@ -582,6 +582,16 @@ bool OkeanFileLoader::loadFile(const std::string &fileName, bool run)
     if (!buf)
         return false;
 
+    if (fileName == "$") {
+        // special case workaround (web), check for Intel hex format
+        if (fileSize >= 17 && buf[0] == ':') {
+            int bytes = (buf[1] <= '9' ? buf[1] - '0' : buf[1] - 'A' + 10) * 16 + (buf[2] <= '9' ? buf[2] - '0' : buf[2] - 'A' + 10);
+            int pos = bytes * 2 + 12;
+            if (pos + 2 < fileSize && (buf[pos] == ':' || (buf[pos] == '\x0a' && buf[pos + 1] == ':')))
+                ext = ".hex";
+        }
+    }
+
     if (ext == ".hex") {
         Cpu8080Compatible* cpu = dynamic_cast<Cpu8080Compatible*>(m_platform->getCpu());
 
@@ -598,6 +608,9 @@ bool OkeanFileLoader::loadFile(const std::string &fileName, bool run)
             cpu->enableHooks();
             cpu->setPC(minAddr);
         }
+
+        delete[] buf;
+        return loaded;
     }
 
 
