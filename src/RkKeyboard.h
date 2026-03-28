@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -100,7 +100,7 @@ class RkKeyboard : public Keyboard
 
         uint8_t m_keys[8];
         uint8_t m_ctrlKeys;
-        uint8_t m_mask;
+        uint8_t m_mask = 0;
 
 };
 

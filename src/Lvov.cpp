@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2020-2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2020-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -324,9 +324,6 @@ void LvovKeyboard::resetKeys()
 
     for (int i = 0; i < 4; i++)
         m_keys2[i] = 0;
-
-    m_mask1 = 0;
-    m_mask2 = 0;
 }
 
 void LvovKeyboard::processKey(EmuKey key, bool isPressed)

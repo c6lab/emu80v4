@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2025-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -224,7 +224,7 @@ class ZxKeyboard : public Keyboard
         };
 
         uint8_t m_keys[8];
-        uint8_t m_mask;
+        uint8_t m_mask = 0;
 
         EmuOutput* m_dataOutput = nullptr;
         void setMatrixMask(uint8_t mask);

@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2023
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@ void RkKeyboard::resetKeys()
 {
     for (int i = 0; i < 8; i++)
         m_keys[i] = 0;
-    m_mask = 0;
     m_ctrlKeys = 0;
 }
 

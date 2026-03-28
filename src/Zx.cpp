@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2025-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -235,8 +235,6 @@ void ZxKeyboard::resetKeys()
 {
     for (int i = 0; i < 8; i++)
         m_keys[i] = 0;
-
-    m_mask = 0;
 }
 
 
