@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2021-2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2021-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -739,9 +739,6 @@ void KorvetKeyboard::resetKeys()
 
     for (int i = 0; i < 3; i++)
         m_keys2[i] = 0;
-
-    m_mask1 = 0;
-    m_mask2 = 0;
 }
 
 void KorvetKeyboard::processKey(EmuKey key, bool isPressed)

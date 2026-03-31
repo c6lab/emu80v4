@@ -853,7 +853,6 @@ void VectorKeyboard::resetKeys()
 {
     for (int i = 0; i < 8; i++)
         m_keys[i] = 0;
-    m_mask = 0;
     m_ctrlKeys = 0;
 }
 

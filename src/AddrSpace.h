@@ -74,6 +74,39 @@ private:
 };
 
 
+class AddrDecoder : public AddressableDevice
+{
+public:
+    AddrDecoder(uint8_t nullByte = 0xFF) {m_nullByte = nullByte;}
+
+    bool setProperty(const std::string& propertyName, const EmuValuesList& values) override;
+
+    uint8_t readByte(int addr) override;
+    void writeByte(int addr, uint8_t value) override;
+
+    void addDevice(int matchMask, int match, int resMask, AddressableDevice* addrDevice, int resShift = 0, int devFirstAddr = 0);
+    virtual void addDevRead(int matchMask, int match, int resMask, AddressableDevice* addrDevice, int resShift = 0, int devFirstAddr = 0);
+    virtual void addDevWrite(int matchMask, int match, int resMask, AddressableDevice* addrDevice, int resShift = 0, int devFirstAddr = 0);
+
+    static EmuObject* create(const EmuValuesList&) {return new AddrDecoder();}
+
+private:
+    struct DeviceInfo {
+        AddressableDevice* device;
+        int matchMask;
+        int match;
+        int resMask;
+        int resShift;
+        int devFirstAddr;
+    };
+
+    uint8_t m_nullByte;          // байт, считываемый из нераспределенного пространства
+
+    std::vector<DeviceInfo> m_devRVector;   // вектор устройств для чтения
+    std::vector<DeviceInfo> m_devWVector;   // вектор устройств для записи
+};
+
+
 class AddrSpaceMapper : public AddressableDevice
 {
     public:

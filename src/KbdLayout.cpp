@@ -132,11 +132,13 @@ void KbdLayout::processKey(PalKeyCode keyCode, bool isPressed, unsigned unicodeK
 
                 if (m_separateRusLat) {
                     // Lvov etc.
-                    kbd->processKey(EK_RUS, lang && isPressed);
-                    if (m_prevLang && !lang)
-                        kbd->processKey(EK_LAT, lang != isPressed);
-                    if (!isPressed)
-                        m_prevLang = lang;
+                    if (s1 == 0 && s2 > 0) {
+                        kbd->processKey(EK_LAT, false);
+                        kbd->processKey(EK_RUS, true);
+                    } else if (s1 > 0 && s2 == 0) {
+                        kbd->processKey(EK_RUS, false);
+                        kbd->processKey(EK_LAT, true);
+                    }
                 } else {
                     // Pk8000 etc.
                     if (s1 == 0 && s2 > 0)

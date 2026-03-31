@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2020-2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2020-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -123,10 +123,10 @@ class LvovKeyboard : public Keyboard
         };
 
         uint8_t m_keys1[8];
-        uint16_t m_mask1;
+        uint16_t m_mask1 = 0;
 
         uint8_t m_keys2[4];
-        uint8_t m_mask2;
+        uint8_t m_mask2 = 0;
 };
 
 
