@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -94,8 +94,10 @@ void PalWindow::applyParams()
         m_qtWindow->setFullScreen(false);
     }
 
-    if (m_params.style == PWS_FIXED && (m_params.width != m_prevParams.width || m_params.height != m_prevParams.height))
+    if (m_params.style == PWS_FIXED && (m_params.width != m_prevParams.width || m_params.height != m_prevParams.height)) {
         m_qtWindow->setClientSize(m_params.width, m_params.height);
+        m_qtWindow->setAutoresizeFlag(m_params.autoResize);
+    }
 
     if (m_params.style != m_prevParams.style) {
         switch (m_params.style) {
@@ -105,6 +107,7 @@ void PalWindow::applyParams()
             break;
         case PWS_FIXED:
             m_qtWindow->setClientSize(m_params.width, m_params.height);
+            m_qtWindow->setAutoresizeFlag(m_params.autoResize);
             break;
         default: // case PWS_FULLSCREEN
             m_qtWindow->setFullScreen(true);

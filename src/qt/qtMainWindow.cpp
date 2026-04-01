@@ -217,7 +217,8 @@ void MainWindow::setPalWindow(PalWindow* palWindow)
                     m_clientWidth = m_clientHeight = 0;
                     adjustClientSize(); //resizable
                 }
-            }
+            } else if (!m_autoResizeFlag)
+                adjustClientSize();
         }
 
         if (m_settingsDialog->getOptionValue("showHelp") == "yes") {
@@ -239,6 +240,12 @@ void MainWindow::setPalWindow(PalWindow* palWindow)
         break;
     }
     m_controlsCreated = true;
+}
+
+
+void MainWindow::setAutoresizeFlag(bool autoResize)
+{
+    m_autoResizeFlag = autoResize;
 }
 
 

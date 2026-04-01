@@ -83,6 +83,7 @@ public:
     void mouseDrag(bool pressed, int x, int y);
 
     void setClientSize(int width, int height);
+    void setAutoresizeFlag(bool autoresize);
     void adjustClientSize();
     void setFullScreen(bool fullscreen);
 
@@ -276,6 +277,7 @@ private:
 
     int m_clientWidth = 1;
     int m_clientHeight = 1;
+    bool m_autoResizeFlag = false;
 
     bool m_disableResizing = true;
     bool m_showFirstTime = true;

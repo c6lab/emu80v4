@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ EmuWindow::EmuWindow()
     m_params.title = "";
     m_params.vsync = g_emulation->getVsync();
     m_params.smoothing = ST_SHARP;
+    m_params.autoResize = false;
 
     applyParams();
 }
@@ -123,6 +124,8 @@ void EmuWindow::setWindowStyle(WindowStyle ws)
         m_params.width = m_defWindowWidth;
         m_params.height = m_defWindowHeight;
     }
+
+    m_params.autoResize = ws == WS_AUTOSIZE;
 
     applyParams();
 

@@ -49,6 +49,7 @@ class PalWindow
         std::string shader;
         bool grayBackground;
         bool desaturate;
+        bool autoResize;
     };
 
         PalWindow();
