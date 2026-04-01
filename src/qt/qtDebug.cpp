@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2023
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2023-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -144,6 +144,15 @@ void MainWindow::onDbgEdit()
     DebugWindow* dbg = static_cast<DebugWindow*>(emuGetDebugger(m_palWindow));
     if (dbg)
         dbg->sendCmd(DCMD_EDIT);
+}
+
+
+void MainWindow::onDbgSmoothing()
+{
+    onSmoothing();
+    DebugWindow* dbg = static_cast<DebugWindow*>(emuGetDebugger(m_palWindow));
+    if (dbg)
+        dbg->sendCmd(DCMD_REPAINT);
 }
 
 
@@ -318,6 +327,16 @@ void MainWindow::createDebugActions()
     windowGroup->addAction(m_preset2xAction);
     windowGroup->addAction(m_preset3xAction);
     windowGroup->addAction(m_presetFitAction);
+
+    windowMenu->addSeparator();
+
+    m_smoothingAction = new QAction(m_smoothingSharpIcon, tr("Toggle smoothing"), this /*m_menuBar*/);
+    QList<QKeySequence> smoothingKeysList;
+    ADD_HOTKEY(smoothingKeysList, Qt::Key_S);
+    m_smoothingAction->setShortcuts(smoothingKeysList);
+    addAction(m_smoothingAction);
+    windowMenu->addAction(m_smoothingAction);
+    connect(m_smoothingAction, SIGNAL(triggered()), this, SLOT(onDbgSmoothing()));
 
     windowMenu->addSeparator();
 
