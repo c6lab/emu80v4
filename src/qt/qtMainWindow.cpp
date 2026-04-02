@@ -1494,6 +1494,17 @@ void MainWindow::createActions()
     m_presetMenu->addAction(m_preset1xAction);
     connect(m_preset1xAction, SIGNAL(triggered()), this, SLOT(on1x()));
 
+    // 1.5x preset
+    m_preset15xAction = new QAction(m_15xIcon, tr("Fixed: 1.5x"), this);
+    m_preset15xAction->setCheckable(true);
+    QList<QKeySequence> preset15xKeysList;
+    ADD_HOTKEY(preset15xKeysList, Qt::Key_8);
+    presetGroup->addAction(m_preset15xAction);
+    m_preset15xAction->setShortcuts(preset15xKeysList);
+    addAction(m_preset15xAction);
+    m_presetMenu->addAction(m_preset15xAction);
+    connect(m_preset15xAction, SIGNAL(triggered()), this, SLOT(on15x()));
+
     // 2x preset
     m_preset2xAction = new QAction(m_2xIcon, tr("Fixed: 2x"), this);
     //m_preset2xAction->setToolTip(tr("Preset: 2x (Alt-2)"));
@@ -1507,6 +1518,17 @@ void MainWindow::createActions()
     addAction(m_preset2xAction);
     m_presetMenu->addAction(m_preset2xAction);
     connect(m_preset2xAction, SIGNAL(triggered()), this, SLOT(on2x()));
+
+    // 2.5x preset
+    m_preset25xAction = new QAction(m_25xIcon, tr("Fixed: 2.5x"), this);
+    m_preset25xAction->setCheckable(true);
+    QList<QKeySequence> preset25xKeysList;
+    ADD_HOTKEY(preset25xKeysList, Qt::Key_9);
+    presetGroup->addAction(m_preset25xAction);
+    m_preset25xAction->setShortcuts(preset25xKeysList);
+    addAction(m_preset25xAction);
+    m_presetMenu->addAction(m_preset25xAction);
+    connect(m_preset25xAction, SIGNAL(triggered()), this, SLOT(on25x()));
 
     // 3x preset
     m_preset3xAction = new QAction(m_3xIcon, tr("Fixed: 3x"), this);
@@ -1552,45 +1574,7 @@ void MainWindow::createActions()
 
     m_presetMenu->addSeparator();
 
-    // 1.5x preset
-    m_preset15xAction = new QAction(m_15xIcon, tr("Fixed: 1.5x"), this);
-    m_preset15xAction->setCheckable(true);
-    QList<QKeySequence> preset15xKeysList;
-    ADD_HOTKEY(preset15xKeysList, Qt::Key_8);
-    presetGroup->addAction(m_preset15xAction);
-    m_preset15xAction->setShortcuts(preset15xKeysList);
-    addAction(m_preset15xAction);
-    m_presetMenu->addAction(m_preset15xAction);
-    connect(m_preset15xAction, SIGNAL(triggered()), this, SLOT(on15x()));
-
-    // 2.5x preset
-    m_preset25xAction = new QAction(m_25xIcon, tr("Fixed: 2.5x"), this);
-    m_preset25xAction->setCheckable(true);
-    QList<QKeySequence> preset25xKeysList;
-    ADD_HOTKEY(preset25xKeysList, Qt::Key_9);
-    presetGroup->addAction(m_preset25xAction);
-    m_preset25xAction->setShortcuts(preset25xKeysList);
-    addAction(m_preset25xAction);
-    m_presetMenu->addAction(m_preset25xAction);
-    connect(m_preset25xAction, SIGNAL(triggered()), this, SLOT(on25x()));
-    m_presetMenu->addSeparator();
-
-    // Fit preset
-    m_presetFitAction = new QAction(m_resizableIcon, tr("Resizable"), this);
-    //m_presetFitAction->setToolTip(tr("Preset: Fit (Alt-0)"));
-    m_presetFitAction->setCheckable(true);
-    QList<QKeySequence> presetFitKeysList;
-    ADD_HOTKEY(presetFitKeysList, Qt::Key_0);
-    //presetFitKeysList.append(QKeySequence(Qt::ALT + Qt::Key_0));
-    //presetFitKeysList.append(QKeySequence(Qt::META + Qt::Key_0));
-    presetGroup->addAction(m_presetFitAction);
-    m_presetFitAction->setShortcuts(presetFitKeysList);
-    addAction(m_presetFitAction);
-    m_presetMenu->addAction(m_presetFitAction);
-    connect(m_presetFitAction, SIGNAL(triggered()), this, SLOT(onFit()));
-
-    m_fixedPresetMenu = new QMenu(tr("Fixed size"), m_smoothingMenu);
-    m_presetMenu->addSeparator();
+    m_fixedPresetMenu = new QMenu(tr("Fixed size"), m_presetMenu);
     m_presetMenu->addMenu(m_fixedPresetMenu);
 
     // 512x384 preset
@@ -1724,6 +1708,28 @@ void MainWindow::createActions()
     connect(m_preset1080wAction, &QAction::triggered, [this]() {
         onFixedPreset(1920, 1080);
     });
+
+    m_presetMenu->addSeparator();
+
+    // Fit preset
+    m_presetFitAction = new QAction(m_resizableIcon, tr("Resizable"), this);
+    //m_presetFitAction->setToolTip(tr("Preset: Fit (Alt-0)"));
+    m_presetFitAction->setCheckable(true);
+    QList<QKeySequence> presetFitKeysList;
+    ADD_HOTKEY(presetFitKeysList, Qt::Key_0);
+    //presetFitKeysList.append(QKeySequence(Qt::ALT + Qt::Key_0));
+    //presetFitKeysList.append(QKeySequence(Qt::META + Qt::Key_0));
+    presetGroup->addAction(m_presetFitAction);
+    m_presetFitAction->setShortcuts(presetFitKeysList);
+    addAction(m_presetFitAction);
+    m_presetMenu->addAction(m_presetFitAction);
+    connect(m_presetFitAction, SIGNAL(triggered()), this, SLOT(onFit()));
+
+    // Preserve size
+    m_preserveSizeAction = new QAction(tr("Preserve size"), this);
+    m_preserveSizeAction->setCheckable(true);
+    connect(m_preserveSizeAction, SIGNAL(triggered()), this, SLOT(onPreserveSize()));
+    m_presetMenu->addAction(m_preserveSizeAction);
 
     m_presetAction = m_presetMenu->menuAction();
     m_presetAction->setToolTip(tr("Window size"));
@@ -2695,6 +2701,13 @@ void MainWindow::onFit()
 {
     emuSysReq(m_palWindow, SR_FIT);
     saveConfig();
+}
+
+
+void MainWindow::onPreserveSize()
+{
+    if (m_settingsDialog)
+        m_settingsDialog->setOptionValue("preserveSize", m_preserveSizeAction->isChecked() ? "yes" : "no");
 }
 
 
@@ -3825,6 +3838,11 @@ void MainWindow::updateActions()
     m_wideScreenAction->setEnabled(emuGetPropertyValue(m_palWindow->getPlatformObjectName() + ".window", "wideScreen") != "custom");
 
     m_printerCaptureAction->setChecked(!emuGetPropertyValue("prnWriter", "fileName").empty());
+
+    QSettings settings;
+    SET_INI_CODEC(settings);
+    settings.beginGroup("system");
+    m_preserveSizeAction->setChecked(settings.value("preserveSize") == "yes");
 }
 
 

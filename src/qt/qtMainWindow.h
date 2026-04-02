@@ -134,6 +134,7 @@ private slots:
     void on15x();
     void on25x();
     void onFit();
+    void onPreserveSize();
     void onFullscreen();
     void onFullwindow();
     void onExit();
@@ -463,6 +464,7 @@ private:
     QAction* m_preset720wAction;
     QAction* m_preset864wAction;
     QAction* m_preset1080wAction;
+    QAction* m_preserveSizeAction;
     QAction* m_platformHelpAction;
     QAction* m_aboutAction;
     QAction* m_qwertyAction;

@@ -1225,10 +1225,12 @@ QString SettingsDialog::getOptionValue(QString option)
 }
 
 
-/*void SettingsDialog::setOptionValue(QString option, QString value)
+void SettingsDialog::setOptionValue(QString option, QString value)
 {
     m_options[option] = value;
-}*/
+    saveStoredConfig();
+    fillControlValues();
+}
 
 
 void SettingsDialog::onResetShowHelp()
