@@ -74,5 +74,23 @@
         <file>icons/preset-dark.png</file>
         <file>icons/wide-dark.png</file>
         <file>icons/font-dark.png</file>
+        <file>icons/384-dark.png</file>
+        <file>icons/384.png</file>
+        <file>icons/480-dark.png</file>
+        <file>icons/480.png</file>
+        <file>icons/576-dark.png</file>
+        <file>icons/576.png</file>
+        <file>icons/600-dark.png</file>
+        <file>icons/600.png</file>
+        <file>icons/720-dark.png</file>
+        <file>icons/720.png</file>
+        <file>icons/768-dark.png</file>
+        <file>icons/768.png</file>
+        <file>icons/864-dark.png</file>
+        <file>icons/864.png</file>
+        <file>icons/1080-dark.png</file>
+        <file>icons/1080.png</file>
+        <file>icons/960-dark.png</file>
+        <file>icons/960.png</file>
     </qresource>
 </RCC>

@@ -228,6 +228,8 @@ private slots:
 
     void onShiftF10();
 
+    void onFixedPreset(int w, int h);
+
 private:
     PaintWidget* m_paintWidget;
     PalWindow* m_palWindow = nullptr;
@@ -314,6 +316,15 @@ private:
     QIcon m_5xIcon;
     QIcon m_15xIcon;
     QIcon m_25xIcon;
+    QIcon m_384Icon;
+    QIcon m_480Icon;
+    QIcon m_576Icon;
+    QIcon m_600Icon;
+    QIcon m_720Icon;
+    QIcon m_768Icon;
+    QIcon m_864Icon;
+    QIcon m_960Icon;
+    QIcon m_1080Icon;
     QIcon m_resizableIcon;
     QIcon m_shaderIcon;
 
@@ -331,6 +342,7 @@ private:
     QMenu* m_eddMenu = nullptr;
     QMenu* m_edd2Menu = nullptr;
     QMenu* m_shaderListMenu = nullptr;
+    QMenu* m_fixedPresetMenu = nullptr;
 
     QMenuBar* m_menuBar = nullptr;
     QToolBar* m_toolBar = nullptr;
@@ -438,6 +450,19 @@ private:
     QAction* m_preset15xAction;
     QAction* m_preset25xAction;
     QAction* m_presetFitAction;
+    QAction* m_preset384Action;
+    QAction* m_preset480Action;
+    QAction* m_preset576Action;
+    QAction* m_preset600Action;
+    QAction* m_preset720Action;
+    QAction* m_preset768Action;
+    QAction* m_preset864Action;
+    QAction* m_preset960Action;
+    QAction* m_preset1080Action;
+    QAction* m_preset576wAction;
+    QAction* m_preset720wAction;
+    QAction* m_preset864wAction;
+    QAction* m_preset1080wAction;
     QAction* m_platformHelpAction;
     QAction* m_aboutAction;
     QAction* m_qwertyAction;
@@ -461,6 +486,8 @@ private:
     QAction* m_lastPlatformsActions[LAST_PLATFORMS_QTY];
 
     QShortcut* m_shiftF10shortcut;
+
+    QMap<QPair<int, int>, QPair<QAction*, QIcon*>> m_fixedSizeActionMap;
 };
 
 
