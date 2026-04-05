@@ -129,6 +129,7 @@ bool palQtInit(int& argc, char** argv)
     } else
         QCoreApplication::setOrganizationName("Emu80");
     QCoreApplication::setApplicationName("emu80");
+    QGuiApplication::setApplicationDisplayName("Emu80qt");
 
     QSettings::setDefaultFormat(QSettings::IniFormat);
 

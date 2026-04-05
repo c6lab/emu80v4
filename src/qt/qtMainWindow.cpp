@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2017-2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2017-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -80,6 +80,15 @@ MainWindow::MainWindow(QWidget *parent)
     m_5xIcon = QIcon(m_darkTheme ? ":/icons/5x-dark.png" : ":/icons/5x.png");
     m_15xIcon = QIcon(m_darkTheme ? ":/icons/15x-dark.png" : ":/icons/15x.png");
     m_25xIcon = QIcon(m_darkTheme ? ":/icons/25x-dark.png" : ":/icons/25x.png");
+    m_384Icon = QIcon(m_darkTheme ? ":/icons/384-dark.png" : ":/icons/384.png");
+    m_480Icon = QIcon(m_darkTheme ? ":/icons/480-dark.png" : ":/icons/480.png");
+    m_576Icon = QIcon(m_darkTheme ? ":/icons/576-dark.png" : ":/icons/576.png");
+    m_600Icon = QIcon(m_darkTheme ? ":/icons/600-dark.png" : ":/icons/600.png");
+    m_720Icon = QIcon(m_darkTheme ? ":/icons/720-dark.png" : ":/icons/720.png");
+    m_768Icon = QIcon(m_darkTheme ? ":/icons/768-dark.png" : ":/icons/768.png");
+    m_864Icon = QIcon(m_darkTheme ? ":/icons/864-dark.png" : ":/icons/864.png");
+    m_960Icon = QIcon(m_darkTheme ? ":/icons/960-dark.png" : ":/icons/960.png");
+    m_1080Icon = QIcon(m_darkTheme ? ":/icons/1080-dark.png" : ":/icons/1080.png");
     m_resizableIcon = QIcon(m_darkTheme ? ":/icons/resizable-dark.png" : ":/icons/resizable.png");
     m_smoothingNearestIcon = QIcon(m_darkTheme ? ":/icons/sm_nearest-dark.png" : ":/icons/sm_nearest.png");
     m_smoothingSharpIcon = QIcon(m_darkTheme ? ":/icons/sm_sharp-dark.png" : ":/icons/sm_sharp.png");
@@ -217,7 +226,8 @@ void MainWindow::setPalWindow(PalWindow* palWindow)
                     m_clientWidth = m_clientHeight = 0;
                     adjustClientSize(); //resizable
                 }
-            }
+            } else if (!m_autoResizeFlag)
+                adjustClientSize();
         }
 
         if (m_settingsDialog->getOptionValue("showHelp") == "yes") {
@@ -239,6 +249,12 @@ void MainWindow::setPalWindow(PalWindow* palWindow)
         break;
     }
     m_controlsCreated = true;
+}
+
+
+void MainWindow::setAutoresizeFlag(bool autoResize)
+{
+    m_autoResizeFlag = autoResize;
 }
 
 
@@ -1478,6 +1494,17 @@ void MainWindow::createActions()
     m_presetMenu->addAction(m_preset1xAction);
     connect(m_preset1xAction, SIGNAL(triggered()), this, SLOT(on1x()));
 
+    // 1.5x preset
+    m_preset15xAction = new QAction(m_15xIcon, tr("Fixed: 1.5x"), this);
+    m_preset15xAction->setCheckable(true);
+    QList<QKeySequence> preset15xKeysList;
+    ADD_HOTKEY(preset15xKeysList, Qt::Key_8);
+    presetGroup->addAction(m_preset15xAction);
+    m_preset15xAction->setShortcuts(preset15xKeysList);
+    addAction(m_preset15xAction);
+    m_presetMenu->addAction(m_preset15xAction);
+    connect(m_preset15xAction, SIGNAL(triggered()), this, SLOT(on15x()));
+
     // 2x preset
     m_preset2xAction = new QAction(m_2xIcon, tr("Fixed: 2x"), this);
     //m_preset2xAction->setToolTip(tr("Preset: 2x (Alt-2)"));
@@ -1491,6 +1518,17 @@ void MainWindow::createActions()
     addAction(m_preset2xAction);
     m_presetMenu->addAction(m_preset2xAction);
     connect(m_preset2xAction, SIGNAL(triggered()), this, SLOT(on2x()));
+
+    // 2.5x preset
+    m_preset25xAction = new QAction(m_25xIcon, tr("Fixed: 2.5x"), this);
+    m_preset25xAction->setCheckable(true);
+    QList<QKeySequence> preset25xKeysList;
+    ADD_HOTKEY(preset25xKeysList, Qt::Key_9);
+    presetGroup->addAction(m_preset25xAction);
+    m_preset25xAction->setShortcuts(preset25xKeysList);
+    addAction(m_preset25xAction);
+    m_presetMenu->addAction(m_preset25xAction);
+    connect(m_preset25xAction, SIGNAL(triggered()), this, SLOT(on25x()));
 
     // 3x preset
     m_preset3xAction = new QAction(m_3xIcon, tr("Fixed: 3x"), this);
@@ -1536,27 +1574,141 @@ void MainWindow::createActions()
 
     m_presetMenu->addSeparator();
 
-    // 1.5x preset
-    m_preset15xAction = new QAction(m_15xIcon, tr("Fixed: 1.5x"), this);
-    m_preset15xAction->setCheckable(true);
-    QList<QKeySequence> preset15xKeysList;
-    ADD_HOTKEY(preset15xKeysList, Qt::Key_8);
-    presetGroup->addAction(m_preset15xAction);
-    m_preset15xAction->setShortcuts(preset15xKeysList);
-    addAction(m_preset15xAction);
-    m_presetMenu->addAction(m_preset15xAction);
-    connect(m_preset15xAction, SIGNAL(triggered()), this, SLOT(on15x()));
+    m_fixedPresetMenu = new QMenu(tr("Fixed size"), m_presetMenu);
+    m_presetMenu->addMenu(m_fixedPresetMenu);
 
-    // 2.5x preset
-    m_preset25xAction = new QAction(m_25xIcon, tr("Fixed: 2.5x"), this);
-    m_preset25xAction->setCheckable(true);
-    QList<QKeySequence> preset25xKeysList;
-    ADD_HOTKEY(preset25xKeysList, Qt::Key_9);
-    presetGroup->addAction(m_preset25xAction);
-    m_preset25xAction->setShortcuts(preset25xKeysList);
-    addAction(m_preset25xAction);
-    m_presetMenu->addAction(m_preset25xAction);
-    connect(m_preset25xAction, SIGNAL(triggered()), this, SLOT(on25x()));
+    // 512x384 preset
+    m_preset384Action = new QAction(m_384Icon, tr(u8"512\u00D7384"), this);
+    m_preset384Action->setCheckable(true);
+    presetGroup->addAction(m_preset384Action);
+    m_fixedPresetMenu->addAction(m_preset384Action);
+    m_fixedSizeActionMap.insert({512, 384}, {m_preset384Action, &m_384Icon});
+    connect(m_preset384Action, &QAction::triggered, [this]() {
+       onFixedPreset(512, 384);
+    });
+
+    // 640x480 preset
+    m_preset480Action = new QAction(m_480Icon, tr(u8"640\u00D7480"), this);
+    m_preset480Action->setCheckable(true);
+    presetGroup->addAction(m_preset480Action);
+    m_fixedPresetMenu->addAction(m_preset480Action);
+    m_fixedSizeActionMap.insert({640, 480}, {m_preset480Action, &m_480Icon});
+    connect(m_preset480Action, &QAction::triggered, [this]() {
+       onFixedPreset(640, 480);
+    });
+
+    // 768x576 preset
+    m_preset576Action = new QAction(m_576Icon, tr(u8"768\u00D7576"), this);
+    m_preset576Action->setCheckable(true);
+    presetGroup->addAction(m_preset576Action);
+    m_fixedPresetMenu->addAction(m_preset576Action);
+    m_fixedSizeActionMap.insert({768, 576}, {m_preset576Action, &m_576Icon});
+    connect(m_preset576Action, &QAction::triggered, [this]() {
+       onFixedPreset(768, 576);
+    });
+
+    // 800x600 preset
+    m_preset600Action = new QAction(m_600Icon, tr(u8"800\u00D7600"), this);
+    m_preset600Action->setCheckable(true);
+    presetGroup->addAction(m_preset600Action);
+    m_fixedPresetMenu->addAction(m_preset600Action);
+    m_fixedSizeActionMap.insert({800, 600}, {m_preset600Action, &m_600Icon});
+    connect(m_preset600Action, &QAction::triggered, [this]() {
+       onFixedPreset(800, 600);
+    });
+
+    // 960x720 preset
+    m_preset720Action = new QAction(m_720Icon, tr(u8"960\u00D7720"), this);
+    m_preset720Action->setCheckable(true);
+    presetGroup->addAction(m_preset720Action);
+    m_fixedPresetMenu->addAction(m_preset720Action);
+    m_fixedSizeActionMap.insert({960, 720}, {m_preset720Action, &m_720Icon});
+    connect(m_preset720Action, &QAction::triggered, [this]() {
+       onFixedPreset(960, 720);
+    });
+
+    // 1024x768 preset
+    m_preset768Action = new QAction(m_768Icon, tr(u8"1024\u00D7768"), this);
+    m_preset768Action->setCheckable(true);
+    presetGroup->addAction(m_preset768Action);
+    m_fixedPresetMenu->addAction(m_preset768Action);
+    m_fixedSizeActionMap.insert({1024, 768}, {m_preset768Action, &m_768Icon});
+    connect(m_preset768Action, &QAction::triggered, [this]() {
+       onFixedPreset(1024, 768);
+    });
+
+    // 1152x864 preset
+    m_preset864Action = new QAction(m_864Icon, tr(u8"1152\u00D7864"), this);
+    m_preset864Action->setCheckable(true);
+    presetGroup->addAction(m_preset864Action);
+    m_fixedPresetMenu->addAction(m_preset864Action);
+    m_fixedSizeActionMap.insert({1152, 864}, {m_preset864Action, &m_864Icon});
+    connect(m_preset864Action, &QAction::triggered, [this]() {
+       onFixedPreset(1152, 864);
+    });
+
+    // 1280x960 preset
+    m_preset960Action = new QAction(m_960Icon, tr(u8"1280\u00D7960"), this);
+    m_preset960Action->setCheckable(true);
+    presetGroup->addAction(m_preset960Action);
+    m_fixedPresetMenu->addAction(m_preset960Action);
+    m_fixedSizeActionMap.insert({1280, 960}, {m_preset960Action, &m_960Icon});
+    connect(m_preset960Action, &QAction::triggered, [this]() {
+       onFixedPreset(1280, 960);
+    });
+
+    // 1440x1080 preset
+    m_preset1080Action = new QAction(m_1080Icon, tr(u8"1440\u00D71080"), this);
+    m_preset1080Action->setCheckable(true);
+    presetGroup->addAction(m_preset1080Action);
+    m_fixedPresetMenu->addAction(m_preset1080Action);
+    m_fixedSizeActionMap.insert({1440, 1080}, {m_preset1080Action, &m_1080Icon});
+    connect(m_preset1080Action, &QAction::triggered, [this]() {
+       onFixedPreset(1440, 1080);
+    });
+
+    m_fixedPresetMenu->addSeparator();
+
+    // 1024x576 preset
+    m_preset576wAction = new QAction(m_576Icon, tr(u8"1024\u00D7576"), this);
+    m_preset576wAction->setCheckable(true);
+    presetGroup->addAction(m_preset576wAction);
+    m_fixedPresetMenu->addAction(m_preset576wAction);
+    m_fixedSizeActionMap.insert({1024, 576}, {m_preset576wAction, &m_576Icon});
+    connect(m_preset576wAction, &QAction::triggered, [this]() {
+       onFixedPreset(1024, 576);
+    });
+
+    // 1280x720 preset
+    m_preset720wAction = new QAction(m_720Icon, tr(u8"1280\u00D7720"), this);
+    m_preset720wAction->setCheckable(true);
+    presetGroup->addAction(m_preset720wAction);
+    m_fixedPresetMenu->addAction(m_preset720wAction);
+    m_fixedSizeActionMap.insert({1280, 720}, {m_preset720wAction, &m_720Icon});
+    connect(m_preset720wAction, &QAction::triggered, [this]() {
+       onFixedPreset(1280, 720);
+    });
+
+    // 1536x864 preset
+    m_preset864wAction = new QAction(m_864Icon, tr(u8"1536\u00D7864"), this);
+    m_preset864wAction->setCheckable(true);
+    presetGroup->addAction(m_preset864wAction);
+    m_fixedPresetMenu->addAction(m_preset864wAction);
+    m_fixedSizeActionMap.insert({1536, 864}, {m_preset864wAction, &m_864Icon});
+    connect(m_preset864wAction, &QAction::triggered, [this]() {
+       onFixedPreset(1536, 864);
+    });
+
+    // 1920x1080 preset
+    m_preset1080wAction = new QAction(m_1080Icon, tr(u8"1920\u00D71080"), this);
+    m_preset1080wAction->setCheckable(true);
+    presetGroup->addAction(m_preset1080wAction);
+    m_fixedPresetMenu->addAction(m_preset1080wAction);
+    m_fixedSizeActionMap.insert({1920, 1080}, {m_preset1080wAction, &m_1080Icon});
+    connect(m_preset1080wAction, &QAction::triggered, [this]() {
+        onFixedPreset(1920, 1080);
+    });
+
     m_presetMenu->addSeparator();
 
     // Fit preset
@@ -1572,6 +1724,12 @@ void MainWindow::createActions()
     addAction(m_presetFitAction);
     m_presetMenu->addAction(m_presetFitAction);
     connect(m_presetFitAction, SIGNAL(triggered()), this, SLOT(onFit()));
+
+    // Preserve size
+    m_preserveSizeAction = new QAction(tr("Preserve size"), this);
+    m_preserveSizeAction->setCheckable(true);
+    connect(m_preserveSizeAction, SIGNAL(triggered()), this, SLOT(onPreserveSize()));
+    m_presetMenu->addAction(m_preserveSizeAction);
 
     m_presetAction = m_presetMenu->menuAction();
     m_presetAction->setToolTip(tr("Window size"));
@@ -2301,6 +2459,18 @@ void MainWindow::onShiftF10()
 }
 
 
+void MainWindow::onFixedPreset(int w, int h)
+{
+    std::string objName = m_palWindow->getPlatformObjectName() + ".window";
+    emuSetPropertyValue(objName, "defaultWindowWidth", QString::number(w).toUtf8().constData());
+    emuSetPropertyValue(objName, "defaultWindowHeight", QString::number(h).toUtf8().constData());
+    emuSetPropertyValue(objName, "windowStyle", "fixed");
+    emuSetPropertyValue(objName, "frameScale", "fit");
+    updateConfig();
+    saveConfig();
+}
+
+
 void MainWindow::onReset()
 {
     emuSysReq(m_palWindow, SR_RESET);
@@ -2531,6 +2701,13 @@ void MainWindow::onFit()
 {
     emuSysReq(m_palWindow, SR_FIT);
     saveConfig();
+}
+
+
+void MainWindow::onPreserveSize()
+{
+    if (m_settingsDialog)
+        m_settingsDialog->setOptionValue("preserveSize", m_preserveSizeAction->isChecked() ? "yes" : "no");
 }
 
 
@@ -3504,6 +3681,15 @@ void MainWindow::updateActions()
             m_presetAction->setIcon(m_25xIcon);
         } else
             noPreset = true;
+    } else if (windowStyle == "fixed" && frameScale == "fit") {
+        int w = QString::fromUtf8(emuGetPropertyValue(platform + "window", "defaultWindowWidth").c_str()).toInt();
+        int h = QString::fromUtf8(emuGetPropertyValue(platform + "window", "defaultWindowHeight").c_str()).toInt();
+        auto actionPair = m_fixedSizeActionMap.find({w, h});
+        if (actionPair != m_fixedSizeActionMap.end()) {
+            (*actionPair).first->setChecked(true);
+            m_presetAction->setIcon(*(*actionPair).second);
+        } else
+            noPreset = true;
     } else
         noPreset = true;
 
@@ -3514,6 +3700,10 @@ void MainWindow::updateActions()
         m_preset3xAction->setChecked(false);
         m_preset4xAction->setChecked(false);
         m_preset5xAction->setChecked(false);
+
+        for (auto& val: m_fixedSizeActionMap)
+            val.first->setChecked(false);
+
         m_presetAction->setIcon(m_presetIcon);
     }
 
@@ -3648,6 +3838,11 @@ void MainWindow::updateActions()
     m_wideScreenAction->setEnabled(emuGetPropertyValue(m_palWindow->getPlatformObjectName() + ".window", "wideScreen") != "custom");
 
     m_printerCaptureAction->setChecked(!emuGetPropertyValue("prnWriter", "fileName").empty());
+
+    QSettings settings;
+    SET_INI_CODEC(settings);
+    settings.beginGroup("system");
+    m_preserveSizeAction->setChecked(settings.value("preserveSize") == "yes");
 }
 
 

@@ -47,7 +47,7 @@ public:
     void resetAllOptions();
 
     QString getOptionValue(QString option);
-    //void setOptionValue(QString option, QString value);
+    void setOptionValue(QString option, QString value);
 
 public slots:
     void onResetShowHelp();

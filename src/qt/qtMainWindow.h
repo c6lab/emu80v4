@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2017-2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2017-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -83,6 +83,7 @@ public:
     void mouseDrag(bool pressed, int x, int y);
 
     void setClientSize(int width, int height);
+    void setAutoresizeFlag(bool autoresize);
     void adjustClientSize();
     void setFullScreen(bool fullscreen);
 
@@ -133,6 +134,7 @@ private slots:
     void on15x();
     void on25x();
     void onFit();
+    void onPreserveSize();
     void onFullscreen();
     void onFullwindow();
     void onExit();
@@ -223,7 +225,11 @@ private slots:
     void onDbgAddr();
     void onDbgEdit();
 
+    void onDbgSmoothing();
+
     void onShiftF10();
+
+    void onFixedPreset(int w, int h);
 
 private:
     PaintWidget* m_paintWidget;
@@ -274,6 +280,7 @@ private:
 
     int m_clientWidth = 1;
     int m_clientHeight = 1;
+    bool m_autoResizeFlag = false;
 
     bool m_disableResizing = true;
     bool m_showFirstTime = true;
@@ -310,6 +317,15 @@ private:
     QIcon m_5xIcon;
     QIcon m_15xIcon;
     QIcon m_25xIcon;
+    QIcon m_384Icon;
+    QIcon m_480Icon;
+    QIcon m_576Icon;
+    QIcon m_600Icon;
+    QIcon m_720Icon;
+    QIcon m_768Icon;
+    QIcon m_864Icon;
+    QIcon m_960Icon;
+    QIcon m_1080Icon;
     QIcon m_resizableIcon;
     QIcon m_shaderIcon;
 
@@ -327,6 +343,7 @@ private:
     QMenu* m_eddMenu = nullptr;
     QMenu* m_edd2Menu = nullptr;
     QMenu* m_shaderListMenu = nullptr;
+    QMenu* m_fixedPresetMenu = nullptr;
 
     QMenuBar* m_menuBar = nullptr;
     QToolBar* m_toolBar = nullptr;
@@ -434,6 +451,20 @@ private:
     QAction* m_preset15xAction;
     QAction* m_preset25xAction;
     QAction* m_presetFitAction;
+    QAction* m_preset384Action;
+    QAction* m_preset480Action;
+    QAction* m_preset576Action;
+    QAction* m_preset600Action;
+    QAction* m_preset720Action;
+    QAction* m_preset768Action;
+    QAction* m_preset864Action;
+    QAction* m_preset960Action;
+    QAction* m_preset1080Action;
+    QAction* m_preset576wAction;
+    QAction* m_preset720wAction;
+    QAction* m_preset864wAction;
+    QAction* m_preset1080wAction;
+    QAction* m_preserveSizeAction;
     QAction* m_platformHelpAction;
     QAction* m_aboutAction;
     QAction* m_qwertyAction;
@@ -457,6 +488,8 @@ private:
     QAction* m_lastPlatformsActions[LAST_PLATFORMS_QTY];
 
     QShortcut* m_shiftF10shortcut;
+
+    QMap<QPair<int, int>, QPair<QAction*, QIcon*>> m_fixedSizeActionMap;
 };
 
 

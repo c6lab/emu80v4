@@ -44,6 +44,7 @@ class CodeBreakpoint : public CpuHook
 
 
 enum DebugCommand {
+    DCMD_REPAINT,
     DCMD_HERE,
     DCMD_RUN,
     DCMD_STEP,

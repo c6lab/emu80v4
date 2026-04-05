@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2017-2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2017-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1036,6 +1036,10 @@ void DebugWindow::sendCmd(DebugCommand cmd)
         return;
 
     switch(cmd) {
+    case DCMD_REPAINT:
+        invalidate();
+        draw();
+        break;
     case DCMD_SAVEMEM:
         saveDump();
         //processKey(PK_F12, true);
