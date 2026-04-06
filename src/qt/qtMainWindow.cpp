@@ -3833,7 +3833,8 @@ void MainWindow::updateActions()
                 break;
             }
         }
-    }
+    } else
+        m_colorLabel->clear();
 
     m_wideScreenAction->setEnabled(emuGetPropertyValue(m_palWindow->getPlatformObjectName() + ".window", "wideScreen") != "custom");
 
