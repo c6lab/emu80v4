@@ -90,7 +90,7 @@ void Crt8275Renderer::calcAspectRatio(int charWidth)
     else if (scanLines >= 475) {
         // VGA (480p)
         m_aspectRatio = 25.175 / m_fntCharWidth / m_freqMHz; // 480.0 * 25.175 * 4 / 640 / m_fntCharWidth / m_freqMHz / 3;
-    } else if (scanLines >= 360) {
+    } else if (scanLines >= 390) {
         // VGA400
         m_aspectRatio = 25.175 * 5 / 6 / m_fntCharWidth / m_freqMHz; // 400.0 * 25.175 * 4 / 640 / m_fntCharWidth / m_freqMHz / 3;
     } else if (m_frameRate < 55.0) {
