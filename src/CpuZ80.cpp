@@ -2630,9 +2630,6 @@ unsigned CpuZ80::simz80()
         break;
     case 0xFB:          /* EI */
         m_iffPendingCnt = 2;
-        IFF = 0;
-        if (m_core)
-            m_core->inte(true);  // there is no INTE output in Z80 though
         break;
     case 0xFC:          /* CALL M,nnnn */
         CALLC(TSTFLAG(S));
