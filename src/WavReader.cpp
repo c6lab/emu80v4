@@ -114,12 +114,8 @@ bool WavReader::tryWavFormat()
     len -= 4;
 
     uint32_t dataSize = m_file.read32();
-    len -=4;
-    if (len < dataSize) {
-        reportError("Invalid WAV file format:");
-        m_file.close();
-        return false;
-    }
+    //len -= 4;
+    //if len < dataSize (truncated WAV), read existing data anyway
     len = dataSize;
 
     signature = m_file.read32();

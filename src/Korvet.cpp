@@ -257,10 +257,9 @@ void KorvetRenderer::operate()
         g_emulation->screenUpdateReq();
     }
 
-    if (m_curLine == 297) // acrually SVBL in much shorter than 1 scanline
-        static_cast<KorvetCore*>(m_platform->getCore())->int4(false);
     if (m_curLine == 296) {
         m_platform->getCore()->vrtc(true);
+        static_cast<KorvetCore*>(m_platform->getCore())->int4(false);
         static_cast<KorvetCore*>(m_platform->getCore())->int4(true);
     } else if (m_curLine == 39)
         m_platform->getCore()->vrtc(false);

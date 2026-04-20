@@ -39,6 +39,8 @@ void Pic8259::writeByte(int addr, uint8_t value)
         if (addr) {
             // OCW1
             m_imr = value;
+            if (m_inte && (m_irr & ~m_imr))
+                serviceInt();
         } else if (value & 0x10) {
             // ICW1
             m_curInServiceLevel = 8;
