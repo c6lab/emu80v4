@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -117,6 +117,8 @@ SpecRenderer::SpecRenderer()
     m_prevPixelData = new uint32_t[maxBufSize];
     memset(m_pixelData, 0, m_bufSize * sizeof(uint32_t));
     memset(m_prevPixelData, 0, m_prevBufSize * sizeof(uint32_t));
+
+    m_mx2Color8 = true;
 }
 
 
@@ -126,10 +128,18 @@ SpecRenderer::~SpecRenderer()
 }
 
 
+void SpecRenderer::initConnections()
+{
+    CrtRenderer::initConnections();
+    REG_INPUT("mx2MemMode", SpecRenderer::setMx2MemMode);
+    REG_INPUT("8color", SpecRenderer::set8Color);
+}
+
+
 void SpecRenderer::toggleColorMode()
 {
-    if (m_colorMode == SCM_MX)
-        return; // в режиме MS другие режимы недоступны
+    if (m_mx2Mode || m_colorMode == SCM_MX)
+        return; // toggling video modes is not available for MX/MX2
 
     if (m_colorMode == SCM_MONO)
         m_colorMode = SCM_4COLOR;
@@ -145,7 +155,7 @@ void SpecRenderer::renderLine(int line)
     for (int col = 0; col < 48; col++) {
         int addr = col * 256 + line;
         uint8_t bt = m_screenMemory[addr];
-        uint8_t colorByte = m_colorMemory[addr];
+        uint8_t colorByte = m_colorMode == SCM_MX ? m_colorMemoryMx[addr] : m_colorMemory[addr];
         uint32_t fgColor;
         uint32_t bgColor = 0;
         switch (m_colorMode) {
@@ -166,6 +176,26 @@ void SpecRenderer::renderLine(int line)
         for (int pt = 0; pt < 8; pt++, bt <<= 1)
             m_frameBuf[line * 384 + col * 8 + pt] = (bt & 0x80) ? fgColor : bgColor;
     }
+}
+
+
+void SpecRenderer::setMx2MemMode(int mx2MemMode)
+{
+    if (!m_mx2Mode)
+        return;
+    m_mx2MxMode = mx2MemMode != 3;
+    if (m_mx2MxMode)
+        m_colorMode = SCM_MX;
+    else
+        m_colorMode = m_mx2Color8 ? SCM_8COLOR : SCM_4COLOR;
+}
+
+
+void SpecRenderer::set8Color(bool color8)
+{
+    m_mx2Color8 = color8;
+    if (!m_mx2MxMode)
+        m_colorMode = m_mx2Color8 ? SCM_8COLOR : SCM_4COLOR;
 }
 
 
@@ -212,6 +242,14 @@ void SpecRenderer::operate()
 }
 
 
+void SpecRenderer::attachScreenMemory(SpecVideoRam *videoMemory)
+{
+    m_screenMemory = videoMemory->getDataPtr();
+    m_colorMemory = videoMemory->getColorDataPtr();
+    m_colorMemoryMx = videoMemory->getColorDataPtrMx();
+}
+
+
 void SpecRenderer::toggleCropping()
 {
     m_showBorder = !m_showBorder;
@@ -239,15 +277,18 @@ bool SpecRenderer::setProperty(const string& propertyName, const EmuValuesList& 
         attachScreenMemory(static_cast<SpecVideoRam*>(g_emulation->findObject(values[0].asString())));
         return true;
     } else if (propertyName == "colorMode") {
-        if (values[0].asString() == "mono")
+        if (values[0].asString() == "mono") {
             m_colorMode = SCM_MONO;
-        else if (values[0].asString() == "4color")
+        } else if (values[0].asString() == "4color") {
             m_colorMode = SCM_4COLOR;
-        else if (values[0].asString() == "8color")
+        } else if (values[0].asString() == "8color") {
             m_colorMode = SCM_8COLOR;
-        else if (values[0].asString() == "mx")
+        } else if (values[0].asString() == "mx") {
             m_colorMode = SCM_MX;
-        else
+        } else if (values[0].asString() == "mx2") {
+            m_colorMode = SCM_8COLOR;
+            m_mx2Mode = true;
+        } else
             return false;
         return true;
     } else if (propertyName == "visibleArea") {
@@ -269,6 +310,8 @@ string SpecRenderer::getPropertyStringValue(const string& propertyName)
         return res;
 
     if (propertyName == "colorMode") {
+        if (m_mx2Mode)
+            return "mx2";
         switch (m_colorMode) {
             case SCM_MONO:
                 return "mono";
@@ -282,7 +325,16 @@ string SpecRenderer::getPropertyStringValue(const string& propertyName)
     } else if (propertyName == "visibleArea") {
         return m_showBorder ? "yes" : "no";
     } else if (propertyName == "crtMode") {
-            return u8"384\u00D7256@50.08Hz" ;
+        string res = u8"384\u00D7256@50.08Hz";
+        if (m_mx2Mode) {
+            if (m_colorMode == SCM_4COLOR)
+                res += " 5 col.";
+            else if (m_colorMode == SCM_8COLOR)
+                res += " 8 col.";
+            else
+                res += " 16 col.";
+        }
+        return res;
     }
 
     return "";
@@ -305,12 +357,21 @@ SpecVideoRam::SpecVideoRam(int memSize)  : Ram(memSize)
 {
     m_memSize = memSize;
     m_colorBuf = new uint8_t[memSize];
+    m_colorBufMx = new uint8_t[memSize];
 }
 
 
 SpecVideoRam::~SpecVideoRam()
 {
     delete[] m_colorBuf;
+    delete[] m_colorBufMx;
+}
+
+
+void SpecVideoRam::initConnections()
+{
+    Ram::initConnections();
+    REG_INPUT("curColorMx", SpecVideoRam::setCurColorMx);
 }
 
 
@@ -318,6 +379,7 @@ void SpecVideoRam::writeByte(int addr, uint8_t value)
 {
     Ram::writeByte(addr, value);
     m_colorBuf[addr] = m_color;
+    m_colorBufMx[addr] = m_colorMx;
 }
 
 
@@ -327,56 +389,23 @@ void SpecVideoRam::setCurColor(uint8_t color)
 }
 
 
+void SpecVideoRam::setCurColorMx(uint8_t color)
+{
+    m_colorMx = color;
+}
+
+
 void SpecVideoRam::reset()
 {
     memset(m_colorBuf, m_memSize, 0x70); // нужно ли?
-    m_color = 0x70;
+    m_color = m_colorMx = 0x70;
 };
-
-
-void SpecMxMemPageSelector::reset()
-{
-    m_addrSpaceMapper->setCurPage(0);
-}
-
-
-void SpecMxMemPageSelector::writeByte(int addr, uint8_t value)
-{
-    if (addr == 0) // RAM
-        m_addrSpaceMapper->setCurPage(1);
-    else if (addr == 1) // RAM Disk
-        m_addrSpaceMapper->setCurPage(m_onePageMode ? 2 : (value & 0x7) + 2);
-    else // 2,3 - ROM
-        m_addrSpaceMapper->setCurPage(0);
-};
-
-
-bool SpecMxMemPageSelector::setProperty(const string& propertyName, const EmuValuesList& values)
-{
-    if (AddressableDevice::setProperty(propertyName, values))
-        return true;
-
-    if (propertyName == "mapper") {
-        attachAddrSpaceMapper(static_cast<AddrSpaceMapper*>(g_emulation->findObject(values[0].asString())));
-        return true;
-    } else if (propertyName == "mode") {
-        if (values[0].asString() == "1bank")
-            m_onePageMode = true;
-        else if (values[0].asString() == "8banks")
-            m_onePageMode = false;
-        else
-            return false;
-        return true;
-    }
-
-    return false;
-}
 
 
 void SpecMxColorRegister::writeByte(int, uint8_t value)
 {
     if (m_videoRam)
-        m_videoRam->setCurColor(value);
+        m_videoRam->setCurColorMx(value);
 };
 
 
@@ -862,7 +891,7 @@ bool SpecFileLoader::loadMemFile(uint8_t* data, int fileSize, const std::string&
         m_platform->reset();
         Cpu8080Compatible* cpu = dynamic_cast<Cpu8080Compatible*>(m_platform->getCpu());
         if (cpu) {
-            g_emulation->exec(int64_t(cpu->getKDiv()) * 200000, true);
+            g_emulation->exec(int64_t(cpu->getKDiv()) * 600000, true);
             cpu->setPC(begAddr);
         }
     }
@@ -1093,12 +1122,12 @@ bool SpecMxFileLoader::loadFile(const std::string& fileName, bool run)
         Cpu8080Compatible* cpu = dynamic_cast<Cpu8080Compatible*>(m_platform->getCpu());
         if (!cpu) return false; // на всякий случай
         if (monBegAddr != 0) {
-            m_pageMapper->setCurPage(1); // switch to RAM page
+            m_pageMapper->setCurPage(0); // switch to RAM page
             //m_as->writeByte(0xFFFC, 0); // switch to RAM page
             cpu->setPC(monBegAddr);
         }
         g_emulation->exec(cpu->getKDiv() * 2000000, true);
-        m_pageMapper->setCurPage(1); // switch to RAM page
+        m_pageMapper->setCurPage(0); // switch to RAM page
         //m_as->writeByte(0xFFFC, 0); // switch to RAM page
 
         uint8_t* ptr = buf;

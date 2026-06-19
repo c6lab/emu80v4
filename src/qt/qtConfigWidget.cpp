@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2019-2025
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2019-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@
 #include "ui_qtSpecConfig.h"
 #include "ui_qtOkeanConfig.h"
 #include "ui_qtPartnerConfig.h"
+#include "ui_qtOrionConfig.h"
+#include "ui_qtSpMx2Config.h"
 
 #include "../Pal.h"
 
@@ -67,6 +69,10 @@ ConfigWidget* ConfigWidget::create(QString platformName)
         widget = new SpecConfigWidget();
     else if (platformName == "okean")
         widget = new OkeanConfigWidget();
+    else if (platformName == "orion")
+        widget = new OrionConfigWidget();
+    else if (platformName == "spmx2")
+        widget = new SpMx2ConfigWidget();
     /*else if (platformName == "partner")
         widget = new PartnerConfigWidget();*/
     else // if (platformName == "apogey" || platformName == "rk86" || platformName == "kr04" || platformName == "mikrosha" || platformName == "mikro80" || platformName == "ut88")
@@ -160,7 +166,7 @@ void ApogeyConfigWidget::tune()
     ui->sdEnableCheckBox->setVisible(m_platform == "kr04");
     ui->romDiskEnableCheckBox->setVisible(m_platform == "mikrosha");
     ui->sdosGroupBox->setVisible(m_platform == "rk86" || m_platform == "spec");
-    ui->romDiskGroupBox->setVisible(m_platform != "kr04" && m_platform != "partner" && m_platform != "spec");
+    ui->romDiskGroupBox->setVisible(m_platform != "kr04" && m_platform != "partner" && m_platform != "spec" && m_platform != "spmx2");
     ui->sdGroupBox->setVisible(m_platform != "mikrosha" && m_platform != "mikro80" && m_platform != "ut88");
 
     if (m_platform == "spec") {
@@ -198,6 +204,8 @@ void ApogeyConfigWidget::loadConfig()
         m_defValues["CFG_SD_DIR"] = "spec/sdcard";
         m_defValues["CFG_SD_IMG"] = "spec/sd_spec.img";
         m_defValues["CFG_SD_TYPE"] = "HWMPVV";
+    } else if (m_platform == "spmx2") {
+        m_defValues["CFG_SD_DIR"] = "specmx/sdcard";
     }
 
     optBegin();
@@ -507,7 +515,10 @@ void OkeanConfigWidget::loadConfig()
     optBegin();
 
     QString val = optLoad("CFG_BIOS_VER").toString();
-    if (val == "5") {
+    if (val == "4") {
+        ui->rel4RadioButton->setChecked(true);
+        ui->rel4RadioButton->setFocus();
+    } else if (val == "5") {
         ui->rel5RadioButton->setChecked(true);
         ui->rel5RadioButton->setFocus();
     } else if (val == "6") {
@@ -535,7 +546,9 @@ void OkeanConfigWidget::saveConfig()
     optBegin();
 
     QString val;
-    if (ui->rel5RadioButton->isChecked())
+    if (ui->rel4RadioButton->isChecked())
+        val = "4";
+    else if (ui->rel5RadioButton->isChecked())
         val = "5";
     else if (ui->rel6RadioButton->isChecked())
         val = "6";
@@ -555,6 +568,7 @@ void OkeanConfigWidget::saveConfig()
 
 void OkeanConfigWidget::setDefaults()
 {
+    ui->rel4RadioButton->setChecked(m_defValues["CFG_BIOS_VER"] == "4");
     ui->rel5RadioButton->setChecked(m_defValues["CFG_BIOS_VER"] == "5");
     ui->rel6RadioButton->setChecked(m_defValues["CFG_BIOS_VER"] == "6");
     ui->rel7RadioButton->setChecked(m_defValues["CFG_BIOS_VER"] == "7");
@@ -623,4 +637,72 @@ void PartnerConfigWidget::setDefaults()
     ui->v2RadioButton->setChecked(m_defValues["CFG_ROMSET_VER"] == "2");
     ui->v1RadioButton->setChecked(m_defValues["CFG_ROMSET_VER"] == "1");
     ui->v103RadioButton->setChecked(m_defValues["CFG_ROMSET_VER"] == "1.03");
+}
+
+
+// ######## Orion config widget ########
+
+OrionConfigWidget::OrionConfigWidget(QWidget *parent) :
+    ConfigWidget(parent),
+    ui(new Ui::OrionConfigWidget)
+{
+    ui->setupUi(this);
+}
+
+
+void OrionConfigWidget::loadConfig()
+{
+    m_defValues["CFG_Z80CARD2_AY"] = "ON";
+    m_defValues["CFG_Z80CARD2_480PX"] = "ON";
+
+    optBegin();
+    ui->ayCheckBox->setChecked(optLoad("CFG_Z80CARD2_AY").toString() == "ON");
+    ui->enable480CheckBox->setChecked(optLoad("CFG_Z80CARD2_480PX").toString() == "ON");
+    optEnd();
+}
+
+void OrionConfigWidget::saveConfig()
+{
+    optBegin();
+    optSave("CFG_Z80CARD2_AY", ui->ayCheckBox->isChecked() ? "ON" : "OFF");
+    optSave("CFG_Z80CARD2_480PX", ui->enable480CheckBox->isChecked() ? "ON" : "OFF");
+    optEnd();
+}
+
+void OrionConfigWidget::setDefaults()
+{
+    ui->ayCheckBox->setChecked(m_defValues["CFG_Z80CARD2_AY"] == "ON");
+    ui->enable480CheckBox->setChecked(m_defValues["CFG_Z80CARD2_480PX"] == "ON");
+}
+
+
+// ######## SpMx2 config widget ########
+
+SpMx2ConfigWidget::SpMx2ConfigWidget(QWidget *parent) :
+    ConfigWidget(parent),
+    ui(new Ui::SpMx2ConfigWidget)
+{
+    ui->setupUi(this);
+}
+
+
+void SpMx2ConfigWidget::loadConfig()
+{
+    m_defValues["CFG_DISABLE_5COLOR"] = "OFF";
+
+    optBegin();
+    ui->disable5colorCheckBox->setChecked(optLoad("CFG_DISABLE_5COLOR").toString() == "ON");
+    optEnd();
+}
+
+void SpMx2ConfigWidget::saveConfig()
+{
+    optBegin();
+    optSave("CFG_DISABLE_5COLOR", ui->disable5colorCheckBox->isChecked() ? "ON" : "OFF");
+    optEnd();
+}
+
+void SpMx2ConfigWidget::setDefaults()
+{
+    ui->disable5colorCheckBox->setChecked(m_defValues["CFG_DISABLE_5COLOR"] == "ON");
 }

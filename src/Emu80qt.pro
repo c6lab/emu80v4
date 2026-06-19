@@ -15,7 +15,7 @@ TARGET = Emu80qt
 TEMPLATE = app
 
 #CONFIG += console
-CONFIG += c++11
+CONFIG += c++17
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
@@ -247,6 +247,7 @@ CODECFORSRC = UTF-8
 FORMS += \
     qt/qtKorvetConfig.ui \
     qt/qtOkeanConfig.ui \
+    qt/qtOrionConfig.ui \
     qt/qtPartnerConfig.ui \
     qt/qtPlatformConfig.ui \
     qt/qtSettingsDialog.ui \
@@ -254,6 +255,7 @@ FORMS += \
     qt/qtAboutDialog.ui \
     qt/qtHelpDialog.ui \
     qt/qtApogeyConfig.ui \
+    qt/qtSpMx2Config.ui \
     qt/qtSpecConfig.ui \
     qt/qtVectorConfig.ui \
     qt/qtZxConfig.ui
