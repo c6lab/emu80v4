@@ -1,4 +1,4 @@
-EMCC = emcc
+EMCC = em++
 SRC_DIR = src
 OBJ_DIR = obj_wasm
 BUILD_DIR = build_wasm
