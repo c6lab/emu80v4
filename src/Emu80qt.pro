@@ -32,10 +32,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #QMAKE_CXXFLAGS_DEBUG += -pg
 #QMAKE_LFLAGS_DEBUG += -pg
 
+INCLUDEPATH += 3rdparty
 
 DEFINES += PAL_QT
 
 SOURCES += \
+    3rdparty/z80/Z80.cpp \
     CmdLine.cpp \
     Covox.cpp \
     DbgCalls.cpp \
@@ -133,6 +135,8 @@ SOURCES += \
     qt/qtHelpDialog.cpp
 
 HEADERS  += \
+    3rdparty/z80/Z80.h \
+    3rdparty/z80/zdefs.h \
     AddrSpace.h \
     Apogey.h \
     AtaDrive.h \
@@ -273,3 +277,18 @@ UI_DIR = $${BUILDDIR}/ui
 INSTALLDIR = ~/emu80
 QMAKE_EXTRA_TARGETS += install
 install.commands = mkdir -p $$INSTALLDIR && mkdir -p $$INSTALLDIR/_settings && cp Emu80qt $$INSTALLDIR && cp -r dist/* $$INSTALLDIR && cp COPYING.txt $$INSTALLDIR && cp whatsnew.txt $$INSTALLDIR && cp doc/* $$INSTALLDIR
+
+# MCP Server support — enable with: qmake MCP_SERVER=1 src/Emu80qt.pro
+# or set environment variable: MCP_SERVER=1 qmake src/Emu80qt.pro
+isEmpty(MCP_SERVER):MCP_SERVER = $$(MCP_SERVER)
+!isEmpty(MCP_SERVER):equals(MCP_SERVER, 1) {
+    TARGET = Emu80qt-mcp
+    DEFINES += MCP_SERVER
+    SOURCES += \
+        mcp/McpMarshal.cpp \
+        mcp/McpServer.cpp
+    HEADERS += \
+        mcp/McpMarshal.h \
+        mcp/McpServer.h
+    win32:LIBS += -lws2_32
+}

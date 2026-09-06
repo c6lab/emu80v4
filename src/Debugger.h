@@ -42,11 +42,14 @@ class CodeBreakpoint : public CpuHook
         int  getRemaining() const { return m_remaining; }
         void setRemaining(int n)  { m_remaining = n; }
         int  getHitCount() const  { return m_hitCount; }
+        void setComment(const std::string& c) { m_comment = c; }
+        const std::string& getComment() const { return m_comment; }
 
     private:
         int m_skipCount = 0;    // fixed property
         int m_remaining = 0;    // decremented each hit, reset from skipCount on stop
         int m_hitCount = 0;     // hits since last stop
+        std::string m_comment;
 };
 
 
@@ -104,7 +107,10 @@ enum BreakpointType {
     BT_EXEC,
     BT_WRITE,
     BT_READ,
-    BT_ACSESS
+    BT_ACSESS,
+    BT_PORT_WRITE,
+    BT_PORT_READ,
+    BT_PORT_ACSESS
 };
 
 struct BreakpointInfo {
@@ -128,6 +134,8 @@ public:
     uint16_t getAddr()  { return m_addr; }
     BreakpointType getType() { return m_type; }
     int  getHitCount() const { return m_hitCount; }
+    void setComment(const std::string& c) { m_comment = c; }
+    const std::string& getComment() const { return m_comment; }
     bool check(bool isWrite);
 
 protected:
@@ -137,6 +145,7 @@ protected:
     int    m_skipCount = 0;   // fixed property
     int    m_remaining = 0;   // decremented each hit, reset from skipCount on stop
     int    m_hitCount = 0;    // hits since last stop
+    std::string m_comment;
 };
 
 
@@ -234,6 +243,7 @@ private:
         int fl_n;
 
         uint8_t i;
+        uint8_t r;
         uint8_t im;
         int iff;
 
@@ -454,6 +464,7 @@ struct DbgExecBreakpoint {
     int hitCount;
     int skipCount;
     int remaining;
+    std::string comment;
 };
 
 struct DbgDataBreakpoint {
@@ -462,6 +473,7 @@ struct DbgDataBreakpoint {
     int hitCount;
     int skipCount;
     int remaining;
+    std::string comment;
 };
 
 struct DbgCpuState {
@@ -475,6 +487,17 @@ struct DbgCpuState {
     uint8_t mem[0x10000];
     std::list<DbgExecBreakpoint> breakpoints;
     std::list<DbgDataBreakpoint> dataBreakpoints;
+    std::list<DbgDataBreakpoint> portBreakpoints;
+};
+
+
+class DebugElapsedTimer : public ElapsedTimer
+{
+public:
+    DebugElapsedTimer(Cpu* cpu) : m_cpu(cpu) {}
+    void onElapse() override;
+private:
+    Cpu* m_cpu;
 };
 
 
@@ -498,6 +521,7 @@ public:
 
     void dbgPause();
     void dbgRun();
+    void dbgRunFor(unsigned ms);
     void dbgStepIn();
     void dbgStepOver();
     void dbgStepOut() {}
@@ -506,17 +530,29 @@ public:
     void dbgSetDataBreakpoint(uint16_t addr, BreakpointType type);
     void dbgDelDataBreakpoint(uint16_t addr, BreakpointType type);
     void dbgClearDataBreakpoints();
+    void dbgSetPortBreakpoint(uint16_t addr, BreakpointType type);
+    void dbgDelPortBreakpoint(uint16_t addr, BreakpointType type);
+    void dbgClearPortBreakpoints();
     void dbgSetExecSkipCount(uint16_t addr, int skipCount);
     void dbgSetDataSkipCount(uint16_t addr, int skipCount);
+    void dbgSetPortSkipCount(uint16_t addr, int skipCount);
+    void dbgSetExecComment(uint16_t addr, const std::string& comment);
+    void dbgSetDataComment(uint16_t addr, const std::string& comment);
+    void dbgSetPortComment(uint16_t addr, const std::string& comment);
     void dbgSetRegister(ExternalDebugger::Register reg, uint16_t value);
     void dbgWriteByte(uint16_t addr, uint8_t value);
     void dbgGetState(DbgCpuState& state);
+    void dbgCleanupTimer();
+    bool isTimerRunning() { return m_runForTimer != nullptr; }
+    bool isTimerFired()   { return m_runForTimer && m_runForTimer->isPaused(); }
 
     //static IDebugger* create(Platform* platform, bool oldSchool = true);
 
 private:
     std::list<BreakpointInfo> m_bpList;
     std::list<DataBreakpoint*> m_dataBpList;
+    std::list<DataBreakpoint*> m_portBpList;
+    DebugElapsedTimer* m_runForTimer = nullptr;
     CodeBreakpoint* m_tempBp = nullptr;
     AddressableDevice* m_as = nullptr;
     Cpu8080Compatible* m_cpu = nullptr;

@@ -183,6 +183,7 @@ void Platform::shutdown()
 
 void Platform::reset()
 {
+    m_emuCpuTicksAtReset = m_cpu ? m_cpu->getClock() : 0;
     for (auto it = m_objList.begin(); it != m_objList.end(); it++)
         (*it)->reset();
 }
@@ -423,14 +424,12 @@ void Platform::createDebugger()
     if (m_debugger)
         return;
 
-#ifndef PAL_WASM
+#if (!defined PAL_WASM || !defined WASM_DBG) && !defined MCP_SERVER
     m_debugger = new DebugWindow(this);
     m_debugger->initDbgWindow();
     m_debugger->setCaption("Debug: " + m_window->getCaption());
 #else
-  #ifdef WASM_DBG
     m_debugger = new ExternalDebugger(this);
-  #endif // WASM_DBG
 #endif
 }
 
@@ -535,4 +534,11 @@ void Platform::updateScreenOnce()
 uint64_t Platform::getCpuClock()
 {
     return m_cpu->getClock();
+}
+
+uint64_t Platform::getCpuElapsedTicks()
+{
+    return m_cpu && m_cpu->getKDiv()
+        ? (m_cpu->getClock() - m_emuCpuTicksAtReset) / m_cpu->getKDiv()
+        : 0;
 }

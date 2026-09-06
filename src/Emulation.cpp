@@ -1,6 +1,6 @@
 ﻿/*
  *  Emu80 v. 4.x
- *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2024
+ *  © Viktor Pykhonin <pyk@mail.ru>, 2016-2026
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,6 +34,12 @@
 #include "PrnWriter.h"
 #include "FileLoader.h"
 #include "EmuCalls.h"
+
+#include "Debugger.h"
+
+#ifdef MCP_SERVER
+#include "mcp/McpMarshal.h"
+#endif
 
 using namespace std;
 
@@ -375,7 +381,7 @@ void Emulation::processKey(EmuWindow* wnd, PalKeyCode keyCode, bool isPressed, u
     Platform* platform = platformByWindow(wnd);
     if (platform)
         platform->processKey(keyCode, isPressed, unicodeKey);
-    else if (keyCode != PK_NONE)
+    else if (wnd && keyCode != PK_NONE)
         wnd->processKey(keyCode, isPressed);
 }
 
@@ -549,6 +555,10 @@ void Emulation::sysReq(EmuWindow* wnd, SysReq sr)
 
 void Emulation::mainLoopCycle()
 {
+#ifdef MCP_SERVER
+    mcpProcessCommands();
+#endif
+
     if (m_prevSysClock == 0) // first run
         m_prevSysClock = palGetCounter() - palGetCounterFreq() / 500;
 
@@ -656,6 +666,20 @@ void Emulation::updateFrequency()
 }
 
 
+Platform* Emulation::getCurrentPlatform()
+{
+    return m_platformList.empty() ? nullptr : m_platformList.front();
+}
+
+
+void Emulation::mcpProcessCommands()
+{
+#ifdef MCP_SERVER
+    mcp::ProcessPendingCommands();
+#endif
+}
+
+
 void Emulation::setTemporarySpeedUpFactor(unsigned speed)
 {
     if (speed)
@@ -748,7 +772,19 @@ bool Emulation::setProperty(const string& propertyName, const EmuValuesList& val
         }
     } else if (propertyName == "debugForceZ80Mnemonics") {
         if (values[0].asString() == "yes" || values[0].asString() == "no") {
+            bool oldVal = m_debuggerOptions.forceZ80Mnemonics;
             m_debuggerOptions.forceZ80Mnemonics = values[0].asString() == "yes";
+            if (oldVal != m_debuggerOptions.forceZ80Mnemonics) {
+                if (m_debugReqCpu) {
+                    for (auto it = m_platformList.begin(); it != m_platformList.end(); it++)
+                    if ((*it)->getCpu() == m_debugReqCpu) {
+                        DebugWindow* dbg = dynamic_cast<DebugWindow*>((*it)->getDebugger());
+                        if (dbg)
+                            dbg->sendCmd(DCMD_REPAINT);
+                        break;
+                    }
+                }
+            }
             return true;
         }
     } else if (propertyName == "debugSwapF5F9") {

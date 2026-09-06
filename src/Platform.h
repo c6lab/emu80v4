@@ -71,8 +71,10 @@ class Platform : public ParentObject
         KbdLayout* getKbdLayout() {return m_kbdLayout;}
         CrtRenderer* getRenderer() {return m_renderer;}
         Keyboard* getKeyboard() {return m_keyboard;}
+        KbdTapper* getKbdTapper() {return m_kbdTapper;}
 
         uint64_t getCpuClock();
+        uint64_t getCpuElapsedTicks();
 
         IDebugger* getDebugger() {return m_debugger;}
 
@@ -113,6 +115,7 @@ class Platform : public ParentObject
         int m_defConfigTabId = 0;
 
         IDebugger* m_debugger = nullptr;
+        uint64_t m_emuCpuTicksAtReset = 0;
 
         std::string m_helpFile = "";
         CodePage m_codePage = CP_RK;

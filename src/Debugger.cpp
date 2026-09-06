@@ -168,6 +168,9 @@ DebugWindow::DebugWindow(Platform* platform) : IDebugger(platform)
     flagsInit();
     inputInit();
 
+    const DebuggerOptions& debOpt = g_emulation->getDebuggerOptions();
+    m_z80Mnemonics = m_forceZ80Mnemonics = debOpt.forceZ80Mnemonics;
+
     setWindowStyle(WS_AUTOSIZE);
     setFrameScale(FS_FIXED);
     setFixedYScale(1);
@@ -345,7 +348,11 @@ void DebugWindow::draw()
     const DebuggerOptions& debOpt = g_emulation->getDebuggerOptions();
     m_mnemo8080UpperCase = debOpt.mnemo8080UpperCase;
     m_mnemoZ80UpperCase = debOpt.mnemoZ80UpperCase;
-    m_forceZ80Mnemonics = debOpt.forceZ80Mnemonics;
+
+    bool forceZ80Mnemonics = debOpt.forceZ80Mnemonics;
+    if (forceZ80Mnemonics != m_forceZ80Mnemonics)
+        m_z80Mnemonics = m_forceZ80Mnemonics = forceZ80Mnemonics;
+
     m_swapF5F9 = debOpt.swapF5F9;
     m_resetKeys = debOpt.resetKeys;
 
@@ -507,7 +514,7 @@ void DebugWindow::drawDbgFrame()
         putString(m_curLayout->regs.left + 12, m_curLayout->regs.top + 4, "IX  = ");
         putString(m_curLayout->regs.left + 12, m_curLayout->regs.top + 5, "IY  = ");
 
-        putString(m_curLayout->regs.left + 1, m_curLayout->regs.top + 7, "I  = ");
+        putString(m_curLayout->regs.left + 1, m_curLayout->regs.top + 7, "IR = ");
         putString(m_curLayout->regs.left + 12, m_curLayout->regs.top + 7, "IM  = ");
     }
     // else if (!m_compactMode)
@@ -690,6 +697,7 @@ void DebugWindow::fillCpuStatus()
         m_states[m_stateNum].l2 = m_states[m_stateNum].hl2 & 0xff;
         m_states[m_stateNum].fl_n = m_states[m_stateNum].af & 0b00000010 ? 1 : 0;
         m_states[m_stateNum].i = m_z80cpu->getI();
+        m_states[m_stateNum].r = m_z80cpu->getR();
         m_states[m_stateNum].im = m_z80cpu->getIM();
     }
 }
@@ -705,7 +713,7 @@ string DebugWindow::getInstructionMnemonic(uint16_t addr)
     buf[2] = memByte(addr + 2);
     buf[3] = memByte(addr + 3); // Z80
 
-    if (!m_z80Mode && !m_z80Mnemonics && !m_forceZ80Mnemonics) {
+    if (!m_z80Mode && !m_z80Mnemonics) {
         mnemo = i8080GetInstructionMnemonic(buf);
         if (!m_mnemo8080UpperCase)
             transform(mnemo.begin(), mnemo.end(), mnemo.begin(), ::tolower);
@@ -1897,7 +1905,9 @@ void DebugWindow::regsDraw()
         baseY = m_curLayout->regs.top + 7;
         baseX = m_curLayout->regs.left + 6;
         drawHexByte(baseX,     baseY,   m_states[m_stateNum].i, m_states[m_stateNum].i != m_states[1-m_stateNum].i);
-        baseX += 12;
+        baseX += 2;
+        drawHexByte(baseX,     baseY,   m_states[m_stateNum].r, m_states[m_stateNum].r != m_states[1-m_stateNum].r);
+        baseX += 10;
         drawHexByte(baseX,     baseY,   m_states[m_stateNum].im, m_states[m_stateNum].im != m_states[1-m_stateNum].im);
     }
 
@@ -2298,10 +2308,11 @@ bool DataBreakpoint::check(bool isWrite)
         --m_remaining;
         return false;
     }
-    // BT_ACSESS fires on any access; BT_WRITE only on writes; BT_READ only on reads.
-    bool shouldBreak = (m_type == BT_ACSESS)
-                    || (m_type == BT_WRITE && isWrite)
-                    || (m_type == BT_READ  && !isWrite);
+    // BT_ACSESS/BT_PORT_ACSESS fire on any access; BT_WRITE/BT_PORT_WRITE only on
+    // writes; BT_READ/BT_PORT_READ only on reads.
+    bool shouldBreak = (m_type == BT_ACSESS || m_type == BT_PORT_ACSESS)
+                    || ((m_type == BT_WRITE || m_type == BT_PORT_WRITE) && isWrite)
+                    || ((m_type == BT_READ  || m_type == BT_PORT_READ)  && !isWrite);
     if (shouldBreak) {
         m_remaining = m_skipCount;
         m_hitCount = 0;
@@ -2401,6 +2412,26 @@ void ExternalDebugger::dbgRun()
 
     checkForCurBreakpoint();
     g_emulation->debugRun();
+}
+
+
+void ExternalDebugger::dbgRunFor(unsigned ms)
+{
+    if (m_runForTimer)
+        dbgCleanupTimer();
+    m_runForTimer = new DebugElapsedTimer(m_cpu);
+    m_runForTimer->start(ms);
+    dbgRun();
+}
+
+
+void ExternalDebugger::dbgCleanupTimer()
+{
+    if (!m_runForTimer)
+        return;
+    m_runForTimer->stop();
+    delete m_runForTimer;
+    m_runForTimer = nullptr;
 }
 
 
@@ -2554,11 +2585,18 @@ void ExternalDebugger::dbgGetState(DbgCpuState& state)
         state.breakpoints.push_back({bp.addr,
             bp.codeBp ? bp.codeBp->getHitCount()  : 0,
             bp.codeBp ? bp.codeBp->getSkipCount() : 0,
-            bp.codeBp ? bp.codeBp->getRemaining() : 0});
+            bp.codeBp ? bp.codeBp->getRemaining() : 0,
+            bp.codeBp ? bp.codeBp->getComment()   : ""});
 
     for (auto* dbp: m_dataBpList)
         state.dataBreakpoints.push_back({dbp->getAddr(), static_cast<int>(dbp->getType()),
-            dbp->getHitCount(), dbp->getSkipCount(), dbp->getRemaining()});
+            dbp->getHitCount(), dbp->getSkipCount(), dbp->getRemaining(),
+            dbp->getComment()});
+
+    for (auto* dbp: m_portBpList)
+        state.portBreakpoints.push_back({dbp->getAddr(), static_cast<int>(dbp->getType()),
+            dbp->getHitCount(), dbp->getSkipCount(), dbp->getRemaining(),
+            dbp->getComment()});
 }
 
 
@@ -2597,6 +2635,12 @@ void ExternalDebugger::dbgDelDataBreakpoint(uint16_t addr, BreakpointType type)
 }
 
 
+void DebugElapsedTimer::onElapse()
+{
+    g_emulation->debugRequest(m_cpu);
+}
+
+
 void ExternalDebugger::dbgClearDataBreakpoints()
 {
     for (auto* dbp : m_dataBpList)
@@ -2616,6 +2660,71 @@ void ExternalDebugger::dbgSetDataSkipCount(uint16_t addr, int skipCount)
     for (auto* dbp : m_dataBpList)
         if (dbp->getAddr() == addr)
             dbp->setSkipCount(skipCount);
+}
+
+void ExternalDebugger::dbgSetExecComment(uint16_t addr, const std::string& comment)
+{
+    for (auto& bp : m_bpList)
+        if (bp.addr == addr && bp.codeBp)
+            bp.codeBp->setComment(comment);
+}
+
+void ExternalDebugger::dbgSetDataComment(uint16_t addr, const std::string& comment)
+{
+    for (auto* dbp : m_dataBpList)
+        if (dbp->getAddr() == addr)
+            dbp->setComment(comment);
+}
+
+void ExternalDebugger::dbgSetPortBreakpoint(uint16_t addr, BreakpointType type)
+{
+    for (auto it = m_portBpList.begin(); it != m_portBpList.end(); ) {
+        if ((*it)->getAddr() == addr) {
+            delete *it;
+            it = m_portBpList.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    DataBreakpoint* dbp = new DataBreakpoint(addr, type);
+    if (m_cpu) {
+        dbp->setCpu(dynamic_cast<Cpu*>(m_cpu));
+        m_cpu->addPortBreakpoint(dbp);
+    }
+    m_portBpList.push_back(dbp);
+}
+
+void ExternalDebugger::dbgDelPortBreakpoint(uint16_t addr, BreakpointType type)
+{
+    for (auto it = m_portBpList.begin(); it != m_portBpList.end(); ) {
+        if ((*it)->getAddr() == addr && (*it)->getType() == type) {
+            delete *it;
+            it = m_portBpList.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void ExternalDebugger::dbgClearPortBreakpoints()
+{
+    for (auto* dbp : m_portBpList)
+        delete dbp;
+    m_portBpList.clear();
+}
+
+void ExternalDebugger::dbgSetPortSkipCount(uint16_t addr, int skipCount)
+{
+    for (auto* dbp : m_portBpList)
+        if (dbp->getAddr() == addr)
+            dbp->setSkipCount(skipCount);
+}
+
+void ExternalDebugger::dbgSetPortComment(uint16_t addr, const std::string& comment)
+{
+    for (auto* dbp : m_portBpList)
+        if (dbp->getAddr() == addr)
+            dbp->setComment(comment);
 }
 
 #endif // WASM_DBG || MCP_SERVER

@@ -295,7 +295,7 @@ void ZxRenderer::renderFrame()
 
 void ZxRenderer::operate()
 {
-    advanceTo(m_curClock + 8 * m_ticksPerTState);
+    advanceTo(m_curClock/* + 8 * m_ticksPerTState*/);
 
     if (m_intActive) {
         m_intActive = false;
@@ -327,21 +327,23 @@ void ZxRenderer::advanceTo(uint64_t clocks)
     if (toFrameTState <= m_curFrameTState)
         return;
 
-    int scanLine = m_curFrameTState / m_lineTStates;
+    int fromScanLine = m_curFrameTState / m_lineTStates;
+    int toScanLine = toFrameTState / m_lineTStates;
     int toTState = (toFrameTState + m_lineTStates - 1) % m_lineTStates;
     int fromTState = m_curFrameTState % m_lineTStates;
 
-    if (fromTState <= toTState)
-        drawLine(scanLine, fromTState, toTState);
+    if (fromScanLine == toScanLine)
+        drawLine(fromScanLine, fromTState, toTState);
     else {
-        drawLine(scanLine, fromTState, m_lineTStates - 1);
-        if (scanLine != m_scanLines - 1)
-            drawLine(scanLine + 1, 0, toTState);
+        drawLine(fromScanLine++, fromTState, m_lineTStates - 1);
+        while (fromScanLine < m_scanLines && fromScanLine < toScanLine)
+            drawLine(fromScanLine++, 0, m_lineTStates - 1);
+        if (fromScanLine < m_scanLines)
+            drawLine(fromScanLine, 0, toTState);
     }
 
     m_curFrameTState = toFrameTState % (m_lineTStates * m_scanLines);
 }
-
 
 void ZxRenderer::drawLine(int scanLine, int fromTState, int toTState)
 {
@@ -1122,7 +1124,7 @@ bool ZxFileLoader::loadSna(uint8_t* data, int len)
     static_cast<ZxRenderer*>(m_platform->getRenderer())->setBorderColor(borderColor);
 
     if (cur128kMode)
-        ports->writeByte(0x7ffd, sna128Mode ? data[49181] : 0);
+        ports->writeByte(0x7ffd, sna128Mode ? data[49181] : 0x10);
 
     for (int i = 0; i < 0xC000; i++)
         as->writeByte(0x4000 + i, data[27 + i]);
@@ -1234,3 +1236,82 @@ void ZxCpuWaits::setInt(int)
 {
     m_lastIntTime = g_emulation->getCurClock();
 }*/
+
+
+
+// "Byte" ZX Spectrum clone
+
+#include "Pit8253.h"
+
+void BytePorts::writeByte(int addr, uint8_t value)
+{
+    if (m_pit && ((addr & 0x15) == 0x04))
+        m_pit->writeByte((addr >> 5) & 3, value);
+    else
+        ZxPorts::writeByte(addr, value);
+}
+
+
+uint8_t BytePorts::readByte(int addr)
+{
+    if (m_pit && ((addr & 0x15) == 0x04))
+        return m_pit->readByte(addr >> 4);
+    else
+        return ZxPorts::readByte(addr);
+}
+
+
+bool BytePorts::setProperty(const std::string &propertyName, const EmuValuesList &values)
+{
+    if (ZxPorts::setProperty(propertyName, values))
+        return true;
+
+    if (propertyName == "pit") {
+        m_pit = static_cast<Pit8253*>(g_emulation->findObject(values[0].asString()));
+        return true;
+    }
+    return false;
+}
+
+
+bool ByteTapeInHook::hookProc()
+{
+    if (!m_isEnabled)
+        return false;
+
+    if (g_emulation->getWavReader()->isPlaying())
+        return false;
+
+    if (!m_file->isOpen())
+        m_file->openFile();
+
+    if (m_file->isCancelled())
+        return false;
+
+    CpuZ80* cpu = static_cast<CpuZ80*>(m_cpu);
+
+    uint16_t addr = cpu->getIX();
+
+    if (m_file->isOpen() && !m_file->isEof() && (m_file->isTap() || m_file->isTzx()))
+    {
+        int blockSize = m_file->advanceToNextBlock();
+
+        // ЦЕРИКОПИК algorythm
+        uint8_t first = m_file->readByte();
+        uint8_t seed = cpu->getAddrSpace()->readByte(0xfea3);
+
+        for (int i = 0; i < blockSize - 1; i++) {
+            uint8_t bt = m_file->readByte();
+            cpu->getAddrSpace()->writeByte(addr++, ((bt ^ 0x87) + seed) ^ first);
+        }
+
+        cpu->setIX(addr + blockSize);
+    }
+
+    static_cast<Cpu8080Compatible*>(m_cpu)->ret();
+
+    if (m_file->isEof())
+        m_file->closeFile();
+
+    return true;
+}

@@ -99,6 +99,7 @@ ObjectFactory::ObjectFactory()
     REG_EMU_CLASS(NullSpace);
     REG_EMU_CLASS(Cpu8080);
     REG_EMU_CLASS(Cpu8080StatusWordSpace);
+    REG_EMU_CLASS(Cpu8080IoToMemTranslator);
     REG_EMU_CLASS(CpuZ80);
     REG_EMU_CLASS(Ppi8255);
     REG_EMU_CLASS(Dma8257);
@@ -317,6 +318,8 @@ ObjectFactory::ObjectFactory()
     REG_EMU_CLASS(GsSoundSource);
     REG_EMU_CLASS(GsSoundMem);
     REG_EMU_CLASS(Rtc14818);
+    REG_EMU_CLASS(BytePorts);
+    REG_EMU_CLASS(ByteTapeInHook);
 
     reg("ConfigTab", &EmuConfigTab::create);
     reg("ConfigRadioSelector", &EmuConfigRadioSelector::create);

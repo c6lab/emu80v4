@@ -28,6 +28,7 @@
 PaintWidget::PaintWidget(QWidget *parent) :
     QOpenGLWidget(parent)
 {
+    //setAttribute(Qt::WA_AlwaysStackOnTop);
     setAttribute(Qt::WA_NoSystemBackground);
     //setAttribute(Qt::WA_OpaquePaintEvent);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -256,6 +257,7 @@ void PaintWidget::paintImageGL(QImage* img/*, double aspectRatio*/)
     m_program->setUniformValue("TextureSize", img->size());
     m_program->setUniformValue("InputSize", img->size());
     m_program->setUniformValue("OutputSize", QSize(dstWidth, dstHeight));
+    m_program->setUniformValue("FrameCount", m_shaderFrameCount++);
 
     if (!m_useCustomShader) {
         m_program->setUniformValue("sharp", m_smoothing == ST_SHARP);

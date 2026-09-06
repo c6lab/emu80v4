@@ -70,7 +70,7 @@ class Emulation : public ParentObject
         void registerActiveDevice(IActive* device);
         void unregisterActiveDevice(IActive* device);
 
-        inline void debugRequest(Cpu* cpu) {m_debugReqCpu = cpu;}
+        inline void debugRequest(Cpu* cpu) {m_debugReqCpu = cpu; m_isPaused = false;}
         inline void debugRun() {m_debugReqCpu = nullptr;}
         inline bool isDebuggerActive() {return m_debugReqCpu;}
 
@@ -93,6 +93,10 @@ class Emulation : public ParentObject
         inline EmuConfig* getConfig() {return m_config;}
         inline WavReader* getWavReader() {return m_wavReader;}
         inline PrnWriter* getPrnWriter() {return m_prnWriter;}
+
+        Platform* getCurrentPlatform();
+
+        void mcpProcessCommands();
 
         void setFrequency(int64_t freq) override;
         int64_t getFrequency() {return m_frequency;}
