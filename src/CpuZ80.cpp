@@ -146,7 +146,7 @@ void CpuZ80::intRst(int vect)
 }
 
 
-void CpuZ80::intCall(uint16_t addr)
+void CpuZ80::intCall(uint16_t /*addr*/)
 {
     // to be implemented
 }
@@ -429,7 +429,7 @@ void CpuZ80::out(uint16_t address, uint8_t value)
 }
 
 
-uint8_t CpuZ80::fetchIntOpcode(uint16_t address)
+uint8_t CpuZ80::fetchIntOpcode(uint16_t /*address*/)
 {
     m_m1Status = true;
     z80_int(m_z80, false); // !!! temporarily
